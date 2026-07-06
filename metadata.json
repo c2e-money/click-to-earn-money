@@ -1,0 +1,6 @@
+{
+  "name": "Click To Earn",
+  "description": "A high-paying URL shortener and click-to-earn platform. Earn flat $5.00 CPM on every click with 4-step secure verification gate loops, fast UPI/PayPal/Crypto withdrawals, and live admin controls.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
