@@ -616,3 +616,36 @@ export async function reauthenticateUser(password: string): Promise<boolean> {
     return res.ok;
   }
 }
+export function listenToAllWithdrawals(uid: string, onUpdate: (withdrawals: Withdrawal[]) => void) {
+  if (isFirebaseConfigured && db) {
+    const withdrawalsCollection = collection(db, "withdrawals");
+    // Admin reads all withdrawals ordered by creation date
+    const withdrawalsQuery = query(withdrawalsCollection, orderBy("createdAt", "desc"));
+
+    return onSnapshot(withdrawalsQuery, (snapshot) => {
+      const withdrawalsList = snapshot.docs.map(doc => ({
+        id: doc.id,
+        ...doc.data()
+      })) as Withdrawal[];
+      onUpdate(withdrawalsList);
+    }, (error) => {
+      console.error("Firestore withdrawals listen error:", error);
+    });
+  } else {
+    // Fallback sandbox polling for mock real-time behavior
+    const fetchWithdrawals = async () => {
+      try {
+        const res = await fetch("/api/admin/withdrawals", { headers: { "X-User-Uid": uid } });
+        if (res.ok) {
+          const data = await res.json();
+          onUpdate(data);
+        }
+      } catch (err) {
+        console.error("Sandbox fetchWithdrawals error:", err);
+      }
+    };
+    fetchWithdrawals();
+    const interval = setInterval(fetchWithdrawals, 3000);
+    return () => clearInterval(interval);
+  }
+}
