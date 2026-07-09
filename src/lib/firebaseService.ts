@@ -608,4 +608,11 @@ export async function reauthenticateUser(password: string): Promise<boolean> {
     return true;
   } else {
     const activeUser = JSON.parse(localStorage.getItem("click_user") || "{}");
-    const res = await fetch("/api
+    const res = await fetch("/api/auth/reauthenticate", {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({ uid: activeUser.uid, password })
+    });
+    return res.ok;
+  }
+}
