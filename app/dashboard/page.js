@@ -1,59 +1,50 @@
 "use client";
 import { useEffect, useState } from "react";
-import { db } from "@/lib/firebase";
+import { useRouter } from "next/navigation";
+import { db, auth } from "@/lib/firebase"; // Auth import kiya gaya
+import { onAuthStateChanged } from "firebase/auth";
 import { collection, query, where, getDocs } from "firebase/firestore";
 
 export default function Dashboard() {
+  const router = useRouter();
   const [links, setLinks] = useState([]);
+  const [loading, setLoading] = useState(true);
 
+  // 🔒 YAHAN SECURITY LOCK LAGAYA HAI
   useEffect(() => {
-    const fetchLinks = async () => {
-      const q = query(collection(db, "urls"), where("userId", "==", "guest_user"));
-      const querySnapshot = await getDocs(q);
-      const linksData = [];
-      querySnapshot.forEach((doc) => {
-        linksData.push({ id: doc.id, ...doc.data() });
-      });
-      setLinks(linksData);
-    };
+    const unsubscribe = onAuthStateChanged(auth, (user) => {
+      if (!user) {
+        // Agar user login nahi hai, toh Login page par phenk do
+        router.push("/"); 
+      } else {
+        // Agar login hai, toh uska data fetch karo
+        fetchLinks(user.uid);
+      }
+    });
+    return () => unsubscribe();
+  }, [router]);
 
-    fetchLinks();
-  }, []);
+  const fetchLinks = async (userId) => {
+    // Database logic yahan aayega jab proper login ban jayega
+    setLoading(false);
+  };
+
+  if (loading) return <div className="text-center mt-20 font-bold text-slate-500 text-lg">🔒 Verifying Security...</div>;
 
   return (
-    <div class="max-w-6xl mx-auto mt-12 p-6">
-      <h2 class="text-2xl font-bold text-slate-800 mb-6">My Links Network & Analytics</h2>
-      <div class="bg-white rounded-xl shadow-md overflow-hidden border border-slate-200">
-        <table class="w-full text-left border-collapse">
-          <thead>
-            <tr class="bg-blue-600 text-white">
-              <th class="p-4 font-semibold">Original URL</th>
-              <th class="p-4 font-semibold">Shortened URL</th>
-              <th class="p-4 font-semibold text-center">Clicks</th>
-            </tr>
-          </thead>
-          <tbody>
-            {links.length === 0 ? (
-              <tr>
-                <td colspan="3" class="p-6 text-center text-slate-500">No links generated yet.</td>
-              </tr>
-            ) : (
-              links.map((link) => (
-                <tr key={link.id} class="border-b border-slate-100 hover:bg-slate-50">
-                  <td class="p-4 text-sm max-w-xs truncate text-slate-600">{link.originalUrl}</td>
-                  <td class="p-4 font-medium text-blue-600">
-                    <a href={`/${link.code}`} target="_blank" class="hover:underline">
-                      {window.location.origin}/{link.code}
-                    </a>
-                  </td>
-                  <td class="p-4 text-center font-bold text-slate-800">{link.clicks}</td>
-                </tr>
-              ))
-            )}
-          </tbody>
-        </table>
+    <div className="mt-6 w-full max-w-md mx-auto">
+      <h2 className="text-2xl font-black text-slate-800 mb-4 px-2">My Links</h2>
+      <div className="bg-white rounded-2xl shadow-sm border border-slate-200 overflow-hidden">
+        {links.length === 0 ? (
+          <div className="p-8 text-center text-slate-500 font-medium">
+            No links generated yet.
+          </div>
+        ) : (
+          <ul className="divide-y divide-slate-100">
+            {/* Jab links aayenge toh list yahan banegi */}
+          </ul>
+        )}
       </div>
     </div>
   );
-    }
-  
+}
