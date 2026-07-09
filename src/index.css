@@ -1,0 +1,58 @@
+@import url('https://fonts.googleapis.com/css2?family=Plus+Jakarta+Sans:wght@400;500;600;700;800&family=Space+Grotesk:wght@500;600;700&family=JetBrains+Mono:wght@500;700&display=swap');
+@import "tailwindcss";
+
+@theme {
+  --font-sans: "Plus Jakarta Sans", ui-sans-serif, system-ui, -apple-system, sans-serif;
+  --font-display: "Space Grotesk", sans-serif;
+  --font-mono: "JetBrains Mono", monospace;
+}
+
+/* Base custom styles for premium high-yield dark/neon viewport look */
+body {
+  font-family: var(--font-sans);
+  background-color: #0b0f19; /* Deep obsidian space */
+  color: #f1f5f9; /* Slate 100 */
+}
+
+/* Premium micro scrollbars */
+::-webkit-scrollbar {
+  width: 4px;
+  height: 4px;
+}
+::-webkit-scrollbar-track {
+  background: #0b0f19;
+}
+::-webkit-scrollbar-thumb {
+  background: #334155;
+  border-radius: 99px;
+}
+::-webkit-scrollbar-thumb:hover {
+  background: #6366f1;
+}
+
+/* Custom glowing effects for monetization simulator */
+.glow-green {
+  box-shadow: 0 0 15px rgba(34, 197, 94, 0.2);
+}
+.glow-purple {
+  box-shadow: 0 0 15px rgba(139, 92, 246, 0.25);
+}
+.glow-amber {
+  box-shadow: 0 0 15px rgba(245, 158, 11, 0.2);
+}
+
+/* Simulated Ad Banners pulsing/hover animations */
+@keyframes pulseGlow {
+  0%, 100% {
+    opacity: 0.9;
+    box-shadow: 0 0 8px rgba(139, 92, 246, 0.15);
+  }
+  50% {
+    opacity: 1;
+    box-shadow: 0 0 16px rgba(139, 92, 246, 0.3);
+  }
+}
+
+.simulated-ad {
+  animation: pulseGlow 3s infinite ease-in-out;
+}
