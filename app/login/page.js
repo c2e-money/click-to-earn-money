@@ -23,14 +23,15 @@ export default function Login() {
         const userCredential = await createUserWithEmailAndPassword(auth, email, password);
         const user = userCredential.user;
         
-        // Naye user ka khata (Account) database mein banana
+        // Creating User Account in Database
         await setDoc(doc(db, "users", user.uid), {
           email: user.email,
-          cpm: 5.00, // Default CPM $5
+          cpm: 5.00,
           totalEarnings: 0,
           totalClicks: 0,
           walletBalance: 0,
           role: "publisher",
+          status: "active",
           joinedAt: new Date()
         });
       }
@@ -42,29 +43,106 @@ export default function Login() {
   };
 
   return (
-    <div className="mt-12 flex flex-col items-center px-4">
-      <div className="bg-white w-full max-w-md p-8 rounded-3xl shadow-xl border border-slate-100">
-        <h1 className="text-3xl font-black text-blue-700 mb-2 text-center">
-          {isLogin ? "LG Network Login" : "Join LG Network"}
-        </h1>
-        <p className="text-slate-500 text-sm mb-8 text-center">
-          {isLogin ? "Manage your links & earnings." : "Create an account to start earning."}
-        </p>
+    <div className="min-h-screen bg-neutral-950 flex flex-col items-center justify-center px-4 relative overflow-hidden">
+      
+      {/* Background Glow Effect */}
+      <div className="absolute top-1/4 left-1/2 -translate-x-1/2 w-96 h-96 bg-emerald-500/10 rounded-full blur-[100px] pointer-events-none"></div>
 
-        <form onSubmit={handleAuth} className="flex flex-col gap-5">
-          <input type="email" value={email} onChange={(e) => setEmail(e.target.value)} placeholder="Email Address" className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-600" required />
-          <input type="password" value={password} onChange={(e) => setPassword(e.target.value)} placeholder="Password (Min 6 char)" className="w-full px-4 py-3 border border-slate-300 rounded-xl focus:outline-none focus:ring-2 focus:ring-blue-600" required minLength="6" />
-          <button type="submit" disabled={loading} className="w-full bg-blue-700 text-white px-6 py-4 rounded-xl font-extrabold text-lg shadow-lg mt-2 disabled:opacity-50">
-            {loading ? "Wait..." : isLogin ? "Secure Login" : "Create Account"}
-          </button>
-        </form>
-
-        <div className="mt-8 text-center pt-4">
-          <button onClick={() => setIsLogin(!isLogin)} className="text-slate-600 font-bold text-sm hover:text-blue-700">
-            {isLogin ? "New here? Sign up" : "Already have an account? Login"}
-          </button>
+      <div className="w-full max-w-md z-10">
+        <div className="text-center mb-8">
+          <div className="inline-block bg-emerald-500 text-neutral-950 p-3 rounded-2xl text-3xl mb-4 shadow-[0_0_20px_rgba(16,185,129,0.4)]">
+            ⚡
+          </div>
+          <h1 className="text-3xl font-black text-white tracking-wide">
+            LG <span className="text-emerald-500">Click To Earn</span>
+          </h1>
+          <p className="text-neutral-500 text-sm mt-2 font-medium">
+            {isLogin ? "Welcome back, Creator." : "Join the premium network today."}
+          </p>
         </div>
+
+        <div className="bg-neutral-900/80 backdrop-blur-xl p-8 rounded-3xl border border-neutral-800 shadow-2xl">
+          <form onSubmit={handleAuth} className="flex flex-col gap-5">
+            <div>
+              <label className="block text-xs font-bold text-neutral-400 mb-2 uppercase tracking-wider">Email Address</label>
+              <div className="relative">
+                <span className="absolute left-4 top-3.5 text-neutral-500">✉️</span>
+                <input
+                  type="email"
+                  value={email}
+                  onChange={(e) => setEmail(e.target.value)}
+                  placeholder="you@example.com"
+                  className="w-full bg-neutral-950 border border-neutral-800 text-white pl-12 pr-4 py-3.5 rounded-xl focus:outline-none focus:border-emerald-500 transition font-medium"
+                  required
+                />
+              </div>
+            </div>
+
+            <div>
+              <label className="block text-xs font-bold text-neutral-400 mb-2 uppercase tracking-wider">Password</label>
+              <div className="relative">
+                <span className="absolute left-4 top-3.5 text-neutral-500">🔒</span>
+                <input
+                  type="password"
+                  value={password}
+                  onChange={(e) => setPassword(e.target.value)}
+                  placeholder="••••••••"
+                  className="w-full bg-neutral-950 border border-neutral-800 text-white pl-12 pr-4 py-3.5 rounded-xl focus:outline-none focus:border-emerald-500 transition font-medium"
+                  required
+                  minLength="6"
+                />
+              </div>
+            </div>
+
+            <div className="flex justify-between items-center mt-1">
+              <label className="flex items-center gap-2 text-xs text-neutral-400 cursor-pointer">
+                <input type="checkbox" className="accent-emerald-500 rounded bg-neutral-900 border-neutral-700" />
+                Keep me logged in
+              </label>
+              {isLogin && (
+                <a href="#" className="text-xs font-bold text-emerald-500 hover:text-emerald-400 transition">
+                  Forgot Password?
+                </a>
+              )}
+            </div>
+
+            <button
+              type="submit"
+              disabled={loading}
+              className="w-full bg-emerald-500 hover:bg-emerald-400 text-neutral-950 px-6 py-4 rounded-xl font-black text-sm transition shadow-[0_0_20px_rgba(16,185,129,0.25)] disabled:opacity-50 mt-2 uppercase tracking-wider"
+            >
+              {loading ? "Processing..." : isLogin ? "Access Dashboard ➔" : "Create Account ➔"}
+            </button>
+          </form>
+
+          <div className="mt-8 text-center">
+            <p className="text-neutral-500 text-sm">
+              {isLogin ? "No account? " : "Already have an account? "}
+              <button
+                onClick={() => setIsLogin(!isLogin)}
+                className="text-white font-black hover:text-emerald-400 transition"
+              >
+                {isLogin ? "Get started" : "Login here"}
+              </button>
+            </p>
+          </div>
+        </div>
+
+        {/* Bottom Feature Tags */}
+        {!isLogin && (
+          <div className="grid grid-cols-2 gap-3 mt-6">
+            <div className="bg-neutral-900/50 border border-neutral-800/50 p-3 rounded-xl text-center">
+              <p className="text-emerald-500 text-lg mb-1">🛡️</p>
+              <p className="text-[10px] font-black text-neutral-400 uppercase tracking-wider">Highly Secure</p>
+            </div>
+            <div className="bg-neutral-900/50 border border-neutral-800/50 p-3 rounded-xl text-center">
+              <p className="text-emerald-500 text-lg mb-1">⚡</p>
+              <p className="text-[10px] font-black text-neutral-400 uppercase tracking-wider">Ultra Fast</p>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );
-          }
+                  }
+                  
