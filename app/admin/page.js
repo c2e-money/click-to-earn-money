@@ -10,7 +10,7 @@ export default function AdminLogin() {
   const handleLogin = (e) => {
     e.preventDefault();
     // Yahan aap apna secret Admin Email aur Password set kar sakte hain
-    if (email === "admin@lgnetwork.com" && password === "LgAdmin@2026") {
+    if (email === "dipen8717@gmail.com" && password === "Dipen&Biswas9101") {
       // LocalStorage ek basic temporary security hai. 
       // Real backend mein ise Firebase session cookies se lock karna hoga.
       localStorage.setItem("lg_admin_auth", "true");
