@@ -1,0 +1,6 @@
+{
+  "name": "Link Shortener",
+  "description": "A fast, secure full-stack link shortener featuring real-time click analytics, interactive time-series charts, password locks, and link expiration.",
+  "requestFramePermissions": [],
+  "majorCapabilities": ["MAJOR_CAPABILITY_SERVER_SIDE_GEMINI_API"]
+}
