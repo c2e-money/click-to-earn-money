@@ -4,14 +4,18 @@ import Navbar from "@/app/components/Navbar";
 
 export default function Dashboard() {
   const [url, setUrl] = useState("");
+  const [alias, setAlias] = useState("");
+  const [generatedLink, setGeneratedLink] = useState(null);
 
   const handleGenerate = () => {
     if (!url) return alert("URL daalo!");
     const saved = JSON.parse(localStorage.getItem("myLinks") || "[]");
-    const newLink = { id: Date.now(), url: url, alias: "c2e.com/" + Date.now().toString().slice(-4), clicks: 0 };
+    const newAlias = alias || "c2e.com/" + Date.now().toString().slice(-4);
+    const newLink = { id: Date.now(), url, alias: newAlias, clicks: 0 };
+    
     localStorage.setItem("myLinks", JSON.stringify([newLink, ...saved]));
-    alert("Link Generated!");
-    setUrl("");
+    setGeneratedLink(newAlias);
+    setUrl(""); setAlias("");
   };
 
   return (
@@ -42,38 +46,34 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Analysis/Graph Section */}
+        {/* Traffic Analysis */}
         <div className="bg-[#131722] p-4 rounded-2xl border border-[#1f2937]">
           <p className="text-[10px] font-black uppercase text-gray-500 mb-4">Traffic Analysis</p>
           <div className="h-32 flex items-end gap-2">
-            {/* Visual bars representation */}
             {[40, 70, 45, 90, 60, 80].map((h, i) => (
-              <div key={i} className="flex-1 bg-[#1f2937] rounded-t-lg relative group">
-                <div style={{ height: `${h}%` }} className="absolute bottom-0 w-full bg-purple-600 rounded-t-lg transition-all"></div>
+              <div key={i} className="flex-1 bg-[#1f2937] rounded-t-lg relative">
+                <div style={{ height: `${h}%` }} className="absolute bottom-0 w-full bg-purple-600 rounded-t-lg"></div>
               </div>
             ))}
           </div>
         </div>
 
-        {/* Quick Generate */}
+        {/* Quick Generate Card */}
         <div className="bg-[#131722] p-4 rounded-2xl border border-[#1f2937]">
-          <input 
-            type="text" 
-            value={url} 
-            onChange={(e) => setUrl(e.target.value)} 
-            placeholder="Paste URL..." 
-            className="w-full bg-[#0b0e14] p-3 rounded-xl border border-[#1f2937] mb-3 text-sm" 
-          />
-          <button 
-            onClick={handleGenerate} 
-            className="w-full bg-purple-600 p-3 rounded-xl font-black text-xs uppercase"
-          >
-            Generate Link
-          </button>
+          <input type="text" value={url} onChange={(e) => setUrl(e.target.value)} placeholder="Paste URL..." className="w-full bg-[#0b0e14] p-3 rounded-xl border border-[#1f2937] mb-3 text-sm outline-none" />
+          <input type="text" value={alias} onChange={(e) => setAlias(e.target.value)} placeholder="Custom Alias (Optional)" className="w-full bg-[#0b0e14] p-3 rounded-xl border border-[#1f2937] mb-3 text-sm outline-none" />
+          <button onClick={handleGenerate} className="w-full bg-purple-600 p-3 rounded-xl font-black text-xs uppercase">Generate Link</button>
+          
+          {generatedLink && (
+            <div className="mt-4 p-3 bg-[#0b0e14] rounded-xl border border-purple-900 flex justify-between items-center">
+              <span className="text-xs font-bold truncate">{generatedLink}</span>
+              <button onClick={() => navigator.clipboard.writeText(generatedLink)} className="text-[10px] bg-purple-600 px-3 py-1 rounded-lg font-black uppercase">Copy</button>
+            </div>
+          )}
         </div>
       </main>
 
       <Navbar active="home" />
     </div>
   );
-              }
+}
