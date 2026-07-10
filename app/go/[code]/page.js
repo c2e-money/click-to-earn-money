@@ -8,31 +8,33 @@ export default function AdPage({ params }) {
   const router = useRouter();
   const searchParams = useSearchParams();
   const step = parseInt(searchParams.get("step")) || 1;
+  const [timer, setTimer] = useState(15);
   const [canContinue, setCanContinue] = useState(false);
 
+  // Timer Logic: 15 seconds tak button disable rahega
   useEffect(() => {
-    // 15 seconds timer
-    const timer = setTimeout(() => setCanContinue(true), 15000);
-    return () => clearTimeout(timer);
-  }, []);
+    if (timer > 0) {
+      const interval = setInterval(() => setTimer((prev) => prev - 1), 1000);
+      return () => clearInterval(interval);
+    } else {
+      setCanContinue(true);
+    }
+  }, [timer]);
 
-  // Ads ko load karne ka dynamic tareeka
+  // Ads Load Karne ka Logic
   useEffect(() => {
     const script = document.createElement("script");
     script.src = "https://rightyrely.com/4f8b4de41cea03dc9d830849c3900efa/invoke.js";
     script.async = true;
     document.body.appendChild(script);
-  }, [step]);
+  }, []);
 
   const handleContinue = async () => {
-    // Popup open karo
     window.open("https://rightyrely.com/hjp8zumk?key=47ecd200fbc88445d9ed4da82bf6ad5f", "_blank");
 
     if (step < 4) {
-      // Agla step load karo
       router.push(`/go/${params.code}?step=${step + 1}`);
     } else {
-      // Final link
       const q = query(collection(db, "urls"), where("shortCode", "==", params.code));
       const snap = await getDocs(q);
       if (!snap.empty) {
@@ -48,23 +50,21 @@ export default function AdPage({ params }) {
   return (
     <div className="bg-white text-black min-h-screen p-4 flex flex-col items-center">
       <div className="font-black text-xl mb-4">STEP {step} OF 4</div>
+      
       <div className="bg-yellow-50 border-2 border-yellow-300 p-3 rounded-lg text-center font-bold text-xs my-4 w-full max-w-sm">
-        👆👆 Click This Ads Wait 15s & Back Now Unlock Your Link 👇👇
+        {timer > 0 ? `Please Wait ${timer}s to Unlock` : "👆👆 Click Banner Ads To Unlock 👇👇"}
       </div>
 
-      {/* Ad Units */}
-      {[1, 2, 3].map((i) => (
-        <div key={i} className="my-4 border p-2 w-full max-w-sm text-center text-gray-400 text-[10px]">
-          AD UNIT {i}
-          <div id="container-b594fd33ac3477b8549752f47e5a4e56"></div>
-        </div>
-      ))}
+      <div className="my-8 w-full max-w-sm text-center">
+        <div id="container-b594fd33ac3477b8549752f47e5a4e56"></div>
+      </div>
 
       <button 
         onClick={handleContinue}
+        disabled={!canContinue}
         className={`w-full max-w-sm py-4 my-6 rounded-lg font-bold text-white ${canContinue ? "bg-blue-600" : "bg-gray-400"}`}
       >
-        {canContinue ? "CONTINUE" : "PLEASE WAIT..."}
+        {canContinue ? "CONTINUE" : `WAIT ${timer}s`}
       </button>
     </div>
   );
