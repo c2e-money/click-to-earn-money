@@ -18,7 +18,13 @@ export default function Settings() {
         <input type="password" placeholder="Current Password" onChange={(e) => setCurrent(e.target.value)} className="w-full bg-[#131722] p-3 rounded-lg border border-[#1f2937]" />
         <input type="password" placeholder="New Password" onChange={(e) => setNewPass(e.target.value)} className="w-full bg-[#131722] p-3 rounded-lg border border-[#1f2937]" />
         <button onClick={handleUpdate} className="w-full bg-purple-600 p-3 rounded-lg font-black uppercase">Update Password</button>
-        <button className="w-full bg-red-900/30 text-red-500 p-4 rounded-xl border border-red-900 text-xs font-black uppercase mt-4">Logout</button>
+        
+        <div className="space-y-2 pt-6">
+          <p className="text-[10px] font-black uppercase text-gray-500">Support</p>
+          <a href="https://wa.me/918811896374" className="block bg-[#131722] p-4 rounded-xl border border-[#1f2937] text-xs font-bold">WhatsApp Support</a>
+          <a href="https://t.me/LG_OWNERZ" className="block bg-[#131722] p-4 rounded-xl border border-[#1f2937] text-xs font-bold">Telegram Support</a>
+          <button className="w-full bg-red-900/30 text-red-500 p-4 rounded-xl border border-red-900 text-xs font-black uppercase mt-4">Logout</button>
+        </div>
       </main>
       <Navbar active="settings" />
     </div>
