@@ -16,20 +16,33 @@ export default function Login() {
         await signInWithEmailAndPassword(auth, email, password);
       } else {
         const cred = await createUserWithEmailAndPassword(auth, email, password);
-        await setDoc(doc(db, "users", cred.user.uid), { email, balance: 1.00 }); // $1 bonus logic
+        await setDoc(doc(db, "users", cred.user.uid), { 
+            email, 
+            balance: 0.00, 
+            clicks: 0 
+        });
       }
       window.location.href = "/dashboard";
     } catch (err) { alert(err.message); }
   };
 
   return (
-    <main className="min-h-screen bg-[#0b0e14] flex flex-col justify-center p-6">
+    <main className="min-h-screen bg-[#0b0e14] flex flex-col justify-center p-6 font-sans">
+      
+      {/* BRANDING */}
       <div className="text-center mb-10">
-        <h1 className="text-3xl font-black italic uppercase tracking-tighter">CLICK TO EARN</h1>
+        <h1 className="text-4xl font-black italic uppercase tracking-tighter text-white">CLICK TO EARN</h1>
+        <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-2">Professional Account Access</p>
       </div>
 
-      <div className="bg-[#131722] p-8 rounded-3xl border border-[#1f2937] shadow-2xl">
-        <h2 className="text-lg font-black mb-6 uppercase">{isLogin ? "Sign In" : "Create Account"}</h2>
+      {/* SYNCED CARD DESIGN */}
+      <div className="bg-[#131722] p-8 rounded-3xl border border-[#1f2937] shadow-2xl relative overflow-hidden">
+        {/* Background Accent */}
+        <div className="absolute -top-10 -right-10 w-32 h-32 bg-purple-600/10 rounded-full blur-3xl"></div>
+        
+        <h2 className="text-lg font-black mb-6 uppercase text-white">
+            {isLogin ? "Sign In" : "Create Account"}
+        </h2>
         
         <form onSubmit={handleAuth} className="space-y-4">
           <div>
