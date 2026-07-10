@@ -14,97 +14,71 @@ export default function Dashboard({ user }) {
 
   useEffect(() => {
     if (!user) return;
-
-    // 1. User Balance Sync
     const unsubUser = onSnapshot(doc(db, "users", user.uid), (doc) => {
         if (doc.exists()) setBalance(doc.data().walletBalance || 0);
     });
-
-    // 2. Global CPM Sync
     const unsubCpm = onSnapshot(doc(db, "settings", "global"), (doc) => {
         if (doc.exists()) setCpm(doc.data().cpm || 2);
     });
-
-    // 3. Links aur Traffic Analysis Sync
     const q = query(collection(db, "urls"), where("userId", "==", user.uid));
     const unsubUrls = onSnapshot(q, (snapshot) => {
-        let total = 0;
-        let linkList = [];
-        snapshot.forEach(doc => { 
-            const data = doc.data();
-            total += data.clicks || 0;
-            linkList.push({ id: doc.id, ...data });
-        });
-        setClicks(total);
-        setLinks(linkList);
+        let total = 0; let list = [];
+        snapshot.forEach(doc => { total += doc.data().clicks || 0; list.push(doc.data()); });
+        setClicks(total); setLinks(list);
     });
-
     return () => { unsubUser(); unsubCpm(); unsubUrls(); };
   }, [user]);
 
   const generateLink = async () => {
     if(!url) return alert("URL daalo!");
     const finalAlias = alias || Math.random().toString(36).substring(7);
-    
-    await addDoc(collection(db, "urls"), {
-        originalUrl: url,
-        code: finalAlias,
-        userId: user.uid,
-        clicks: 0
-    });
+    await addDoc(collection(db, "urls"), { originalUrl: url, code: finalAlias, userId: user.uid, clicks: 0 });
     setGeneratedLink(`https://click-to-earn-money.vercel.app/${finalAlias}`);
-    setAlias(""); setUrl("");
   };
 
   return (
-    <div className="p-4 bg-[#050608] text-white min-h-screen">
-      {/* NAVBAR */}
-      <nav className="flex justify-between items-center mb-6 border-b border-[#1f2937] pb-4">
+    <div className="bg-[#050608] text-white min-h-screen pb-20">
+      {/* HEADER WITH GRAVATAR/LOGO */}
+      <nav className="p-4 flex justify-between items-center border-b border-[#1f2937]">
         <h1 className="font-black text-lg italic">C2E DASHBOARD</h1>
-        <div className="bg-purple-600 w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-black">LG</div>
+        <div className="w-8 h-8 bg-purple-600 rounded-full flex items-center justify-center font-black text-[10px]">LG</div>
       </nav>
 
-      {/* STATS SECTION */}
-      <div className="grid grid-cols-2 gap-4 mb-6">
+      {/* STATS */}
+      <div className="p-4 grid grid-cols-2 gap-3">
         <div className="bg-[#0b0e14] p-4 rounded-2xl border border-[#1f2937]">
-            <p className="text-[9px] text-gray-500 font-black uppercase">Clicks</p>
-            <h2 className="text-xl font-black">{clicks}</h2>
+          <p className="text-[8px] text-gray-500 uppercase font-black">Clicks</p>
+          <h2 className="text-lg font-black">{clicks}</h2>
         </div>
         <div className="bg-[#0b0e14] p-4 rounded-2xl border border-[#1f2937]">
-            <p className="text-[9px] text-gray-500 font-black uppercase">Earnings</p>
-            <h2 className="text-xl font-black italic text-emerald-400">${balance.toFixed(4)}</h2>
+          <p className="text-[8px] text-gray-500 uppercase font-black">Withdrawal</p>
+          <h2 className="text-lg font-black">$6.00</h2>
         </div>
         <div className="bg-[#0b0e14] p-4 rounded-2xl border border-[#1f2937]">
-            <p className="text-[9px] text-gray-500 font-black uppercase">CPM</p>
-            <h2 className="text-xl font-black">${cpm}</h2>
+          <p className="text-[8px] text-gray-500 uppercase font-black">CPM</p>
+          <h2 className="text-lg font-black">${cpm}</h2>
         </div>
         <div className="bg-[#0b0e14] p-4 rounded-2xl border border-[#1f2937]">
-            <p className="text-[9px] text-gray-500 font-black uppercase">Withdrawal</p>
-            <h2 className="text-xl font-black italic">$6.00</h2>
+          <p className="text-[8px] text-gray-500 uppercase font-black">Earnings</p>
+          <h2 className="text-lg font-black text-emerald-400 italic">${balance.toFixed(4)}</h2>
         </div>
       </div>
 
-      {/* LINK GENERATOR */}
-      <div className="bg-[#0b0e14] p-6 rounded-3xl border border-[#1f2937] mb-8">
-        <input className="w-full bg-[#050608] p-3 rounded-xl mb-3 border border-[#1f2937] text-sm" placeholder="Paste URL..." value={url} onChange={(e) => setUrl(e.target.value)} />
-        <input className="w-full bg-[#050608] p-3 rounded-xl mb-4 border border-[#1f2937] text-sm" placeholder="Custom Alias (Optional)" value={alias} onChange={(e) => setAlias(e.target.value)} />
-        <button onClick={generateLink} className="w-full bg-purple-600 p-3 rounded-xl font-black uppercase text-[12px]">Generate Link</button>
+      {/* GENERATOR */}
+      <div className="p-4">
+        <input className="w-full bg-[#0b0e14] p-4 rounded-2xl mb-2 border border-[#1f2937] text-sm" placeholder="Paste URL..." onChange={(e) => setUrl(e.target.value)} />
+        <input className="w-full bg-[#0b0e14] p-4 rounded-2xl mb-4 border border-[#1f2937] text-sm" placeholder="Custom Alias (Optional)" onChange={(e) => setAlias(e.target.value)} />
+        <button onClick={generateLink} className="w-full bg-purple-600 p-4 rounded-2xl font-black uppercase text-sm">Generate Link</button>
         {generatedLink && <div className="mt-4 p-3 bg-black rounded-xl border border-purple-900 text-[10px] break-all">{generatedLink}</div>}
       </div>
 
-      {/* TRAFFIC ANALYSIS */}
-      <div className="bg-[#0b0e14] rounded-3xl p-6 border border-[#1f2937]">
-        <h2 className="text-xs font-black uppercase mb-4 italic text-gray-400">Traffic Analysis</h2>
-        <div className="space-y-3">
-            {links.map(link => (
-                <div key={link.id} className="flex justify-between bg-[#131722] p-3 rounded-xl text-[10px]">
-                    <span className="truncate w-1/2">{link.originalUrl}</span>
-                    <span className="font-black text-purple-400">{link.clicks} Clicks</span>
-                </div>
-            ))}
-        </div>
+      {/* BOTTOM NAV BAR */}
+      <div className="fixed bottom-0 w-full bg-[#0b0e14] border-t border-[#1f2937] flex justify-around p-4">
+        <div className="text-center font-black text-xs text-purple-500">HOME</div>
+        <div className="text-center font-black text-xs text-gray-500">LINKS</div>
+        <div className="text-center font-black text-xs text-gray-500">WITHDRAW</div>
       </div>
     </div>
   );
-        }
+                                                                                                                                                                    }
           
