@@ -1,22 +1,40 @@
 "use client";
-export default function Admin() {
-  return (
-    <main className="p-6 bg-[#0b0e14] min-h-screen text-white">
-      <h1 className="text-xl font-black italic uppercase mb-8">Admin Control</h1>
+import { useState } from "react";
+import { signInWithEmailAndPassword } from "firebase/auth";
+import { auth } from "@/lib/firebase";
 
-      {/* Admin Grid */}
-      <div className="grid grid-cols-2 gap-4 mb-8">
-        <div className="bg-[#131722] p-4 rounded-2xl border border-[#1f2937]"><p className="text-[9px] text-gray-500 font-bold uppercase">Total Users</p><p className="text-lg font-black">2,402</p></div>
-        <div className="bg-[#131722] p-4 rounded-2xl border border-[#1f2937]"><p className="text-[9px] text-gray-500 font-bold uppercase">Pending Payouts</p><p className="text-lg font-black text-purple-400">$840</p></div>
-      </div>
+export default function AdminLogin() {
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+  const [isAdmin, setIsAdmin] = useState(false);
 
-      {/* Users Table */}
-      <div className="bg-[#131722] rounded-2xl border border-[#1f2937] overflow-hidden">
-        <div className="px-4 py-3 bg-[#191f30] text-[9px] font-black text-gray-500 uppercase">Recent Withdrawals</div>
-        <div className="px-4 py-4 text-xs font-bold border-b border-[#1f2937] flex justify-between">
-          <span>User_8812</span><span className="text-emerald-500">$45.20</span>
+  const handleLogin = async () => {
+    // Ye credentials sirf tumhare paas hain
+    if (email === "dipen8717@gmail.com" && password === "Dipen&Biswas9101") {
+      setIsAdmin(true);
+    } else {
+      alert("Unauthorized Access!");
+    }
+  };
+
+  if (!isAdmin) {
+    return (
+      <div className="h-screen bg-[#0b0e14] flex items-center justify-center p-6">
+        <div className="bg-[#131722] p-8 rounded-2xl border border-[#1f2937] w-full max-w-sm">
+          <h1 className="text-xl font-black mb-6">ADMIN LOGIN</h1>
+          <input type="email" placeholder="Email" onChange={(e) => setEmail(e.target.value)} className="w-full bg-[#0b0e14] p-3 rounded-xl mb-3 border border-[#1f2937]" />
+          <input type="password" placeholder="Password" onChange={(e) => setPassword(e.target.value)} className="w-full bg-[#0b0e14] p-3 rounded-xl mb-4 border border-[#1f2937]" />
+          <button onClick={handleLogin} className="w-full bg-purple-600 p-3 rounded-xl font-black uppercase">Login</button>
         </div>
       </div>
-    </main>
+    );
+  }
+
+  return (
+    // Yahan tumhara pura Admin Panel ka code aayega jo maine pehle diya tha
+    <div className="p-6 bg-[#0b0e14] text-white min-h-screen">
+      <h1>Welcome Admin, LG Boss!</h1>
+      {/* Admin stats and buttons go here */}
+    </div>
   );
 }
