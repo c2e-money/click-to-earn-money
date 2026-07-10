@@ -1,20 +1,20 @@
 import { db } from "@/lib/firebase";
-import { collection, query, where, getDocs } from "firebase/firestore";
-import { redirect } from 'next/navigation';
+import { collectionGroup, getDocs } from "firebase/firestore";
+import { redirect } from "next/navigation";
 
-export default async function RedirectPage({ params }) {
+export default async function AliasRedirect({ params }) {
   const { alias } = params;
-  
-  // Database mein alias search karo
-  const usersRef = collection(db, "users");
-  const q = query(usersRef); // Yahan logic complex hai, behtar hai har link ka ek main collection banao
-  
-  // NOTE: Simple tarika ye hai ki user se alias fetch karo
-  // Abhi ke liye bas redirect dikha raha hoon
-  return (
-    <div className="flex h-screen items-center justify-center bg-[#0b0e14] text-white">
-      Redirecting from: {alias}...
-    </div>
-  );
-}
+  const snapshot = await getDocs(collectionGroup(db, "users"));
+  let targetUrl = null;
 
+  snapshot.forEach((doc) => {
+    const data = doc.data();
+    if (data.links) {
+      const link = data.links.find(l => l.alias === alias);
+      if (link) targetUrl = link.url;
+    }
+  });
+
+  if (targetUrl) redirect(targetUrl);
+  return <div className="h-screen flex items-center justify-center bg-[#0b0e14] text-white">404 - Link Not Found</div>;
+}
