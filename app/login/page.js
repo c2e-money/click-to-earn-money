@@ -1,6 +1,6 @@
 "use client";
 import { useState } from "react";
-import { auth, db } from "@/lib/firebase";
+import { auth, db } from "@/lib/firebase"; // Sahi path
 import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from "firebase/auth";
 import { doc, setDoc } from "firebase/firestore";
 
@@ -28,21 +28,14 @@ export default function Login() {
 
   return (
     <main className="min-h-screen bg-[#0b0e14] flex flex-col justify-center p-6 font-sans">
-      
-      {/* BRANDING */}
       <div className="text-center mb-10">
         <h1 className="text-4xl font-black italic uppercase tracking-tighter text-white">CLICK TO EARN</h1>
         <p className="text-[10px] text-gray-500 font-bold uppercase tracking-widest mt-2">Professional Account Access</p>
       </div>
 
-      {/* SYNCED CARD DESIGN */}
       <div className="bg-[#131722] p-8 rounded-3xl border border-[#1f2937] shadow-2xl relative overflow-hidden">
-        {/* Background Accent */}
         <div className="absolute -top-10 -right-10 w-32 h-32 bg-purple-600/10 rounded-full blur-3xl"></div>
-        
-        <h2 className="text-lg font-black mb-6 uppercase text-white">
-            {isLogin ? "Sign In" : "Create Account"}
-        </h2>
+        <h2 className="text-lg font-black mb-6 uppercase text-white">{isLogin ? "Sign In" : "Create Account"}</h2>
         
         <form onSubmit={handleAuth} className="space-y-4">
           <div>
@@ -53,7 +46,6 @@ export default function Login() {
             <label className="text-[10px] font-black text-gray-500 uppercase ml-1">Password</label>
             <input type="password" onChange={(e) => setPassword(e.target.value)} className="w-full mt-2 bg-[#0b0e14] border border-[#1f2937] p-4 rounded-xl text-white outline-none focus:border-purple-500 transition" placeholder="••••••••" />
           </div>
-          
           <button type="submit" className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 py-4 rounded-2xl font-black text-white shadow-lg shadow-purple-900/20 active:scale-[0.98] transition-transform mt-4">
             {isLogin ? "LOGIN" : "CREATE ACCOUNT"}
           </button>
