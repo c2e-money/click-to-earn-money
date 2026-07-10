@@ -1,43 +1,61 @@
 "use client";
+import { useEffect, useState } from "react";
+import { db, auth } from "@/lib/firebase";
+import { doc, onSnapshot } from "firebase/firestore";
 
 export default function Dashboard() {
+  const [data, setData] = useState({ balance: 0.00, clicks: 0 });
+
+  useEffect(() => {
+    if (!auth.currentUser) return;
+    const unsub = onSnapshot(doc(db, "users", auth.currentUser.uid), (doc) => {
+      if (doc.exists()) setData(doc.data());
+    });
+    return () => unsub();
+  }, []);
+
   return (
-    <div className="min-h-screen bg-[#0b0e14] p-6 md:p-12">
-      
+    <main className="min-h-screen bg-[#0b0e14] text-white p-6 pb-24">
       {/* Header */}
-      <header className="mb-10">
-        <h1 className="text-2xl font-black text-white italic">CLICK TO EARN</h1>
-        <p className="text-gray-500 text-sm font-medium">Welcome back, creator</p>
+      <header className="flex justify-between items-center mb-10">
+        <h1 className="text-xl font-black italic uppercase">CLICK TO EARN</h1>
+        <div className="w-8 h-8 rounded-full bg-purple-600/20 border border-purple-500/30"></div>
       </header>
 
-      {/* Stats Grid */}
-      <div className="grid grid-cols-1 md:grid-cols-3 gap-6 mb-10">
-        {[
-          { label: "AVAILABLE BALANCE", val: "$1,250.75" },
-          { label: "TOTAL CLICKS", val: "25.8M" },
-          { label: "AVG CPM", val: "$4.25" }
-        ].map((stat, i) => (
-          <div key={i} className="bg-[#131722] border border-[#1f2937] p-6 rounded-3xl shadow-lg">
-            <p className="text-[10px] font-bold text-gray-500 uppercase tracking-widest">{stat.label}</p>
-            <p className="text-3xl font-black text-white mt-2">{stat.val}</p>
-          </div>
-        ))}
+      {/* Balance Section - The Lure */}
+      <div className="bg-gradient-to-br from-[#1a1c29] to-[#131722] p-8 rounded-3xl border border-[#1f2937] text-center mb-8 shadow-2xl">
+        <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Available Balance</p>
+        <p className="text-5xl font-black text-emerald-400 my-3">${data.balance.toFixed(2)}</p>
+        <p className="text-[10px] text-gray-500 font-bold uppercase">Keep shortening to grow your earnings</p>
       </div>
 
-      {/* Shortener Section */}
-      <div className="bg-[#131722] border border-[#1f2937] p-8 rounded-3xl shadow-lg">
-        <h2 className="text-lg font-bold text-white mb-6">Shorten New Link</h2>
-        <div className="flex flex-col md:flex-row gap-4">
-          <input 
-            type="text" 
-            placeholder="Paste your long URL here..." 
-            className="flex-1 bg-[#0b0e14] border border-[#1f2937] text-white p-4 rounded-xl outline-none focus:border-purple-500 transition" 
-          />
-          <button className="bg-gradient-to-r from-purple-600 to-indigo-600 px-8 py-4 rounded-xl font-black text-white hover:opacity-90 transition">
-            SHORTEN
-          </button>
+      {/* Quick Stats */}
+      <div className="grid grid-cols-2 gap-4 mb-8">
+        <div className="bg-[#131722] p-5 rounded-2xl border border-[#1f2937]">
+          <p className="text-[9px] text-gray-500 font-bold uppercase">Total Clicks</p>
+          <p className="text-xl font-black">{data.clicks}</p>
+        </div>
+        <div className="bg-[#131722] p-5 rounded-2xl border border-[#1f2937]">
+          <p className="text-[9px] text-gray-500 font-bold uppercase">Avg CPM</p>
+          <p className="text-xl font-black text-purple-400">$4.50</p>
         </div>
       </div>
-    </div>
+
+      {/* Link Shortener */}
+      <div className="bg-[#131722] p-6 rounded-3xl border border-[#1f2937] mb-8">
+        <h2 className="text-sm font-black mb-4 uppercase">Shorten New Link</h2>
+        <input type="text" placeholder="Paste your long URL here..." className="w-full bg-[#0b0e14] border border-[#1f2937] p-4 rounded-xl mb-3 text-sm focus:border-purple-500 outline-none" />
+        <button className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 py-4 rounded-xl font-black text-sm hover:opacity-90 transition">
+          SHORTEN URL
+        </button>
+      </div>
+
+      {/* Bottom Nav */}
+      <nav className="fixed bottom-0 left-0 w-full bg-[#0b0e14]/90 backdrop-blur-md border-t border-[#1f2937] flex justify-around p-4">
+        <div className="text-purple-400 font-black text-[10px] uppercase">Home</div>
+        <div className="text-gray-500 font-black text-[10px] uppercase">Links</div>
+        <div className="text-gray-500 font-black text-[10px] uppercase">Withdraw</div>
+      </nav>
+    </main>
   );
-}
+        }
