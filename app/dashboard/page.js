@@ -1,26 +1,35 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
 import Navbar from "@/app/components/Navbar";
 
 export default function Dashboard() {
   const [url, setUrl] = useState("");
   const [alias, setAlias] = useState("");
   const [generatedLink, setGeneratedLink] = useState(null);
+  const [userId, setUserId] = useState(null);
+
+  useEffect(() => {
+    // Login se mili ID yahan aayegi
+    const id = localStorage.getItem("currentUserId") || "guest_user";
+    setUserId(id);
+  }, []);
 
   const handleGenerate = () => {
     if (!url) return alert("URL daalo!");
-    const saved = JSON.parse(localStorage.getItem("myLinks") || "[]");
+    const allData = JSON.parse(localStorage.getItem("allUsersLinks") || "{}");
+    const userLinks = allData[userId] || [];
     const newAlias = alias || "c2e.com/" + Date.now().toString().slice(-4);
     const newLink = { id: Date.now(), url, alias: newAlias, clicks: 0 };
     
-    localStorage.setItem("myLinks", JSON.stringify([newLink, ...saved]));
+    allData[userId] = [newLink, ...userLinks];
+    localStorage.setItem("allUsersLinks", JSON.stringify(allData));
     setGeneratedLink(newAlias);
     setUrl(""); setAlias("");
   };
 
   return (
     <div className="flex flex-col h-screen bg-[#0b0e14] text-white">
-      <header className="p-4 border-b border-[#1f2937] flex justify-between items-center shrink-0">
+      <header className="p-4 border-b border-[#1f2937] flex justify-between items-center">
         <h1 className="text-lg font-black italic uppercase tracking-wider">DASHBOARD</h1>
         <div className="w-8 h-8 rounded-full bg-purple-600 flex items-center justify-center text-[10px] font-black">LG</div>
       </header>
@@ -46,34 +55,26 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Traffic Analysis */}
-        <div className="bg-[#131722] p-4 rounded-2xl border border-[#1f2937]">
-          <p className="text-[10px] font-black uppercase text-gray-500 mb-4">Traffic Analysis</p>
-          <div className="h-32 flex items-end gap-2">
-            {[40, 70, 45, 90, 60, 80].map((h, i) => (
-              <div key={i} className="flex-1 bg-[#1f2937] rounded-t-lg relative">
-                <div style={{ height: `${h}%` }} className="absolute bottom-0 w-full bg-purple-600 rounded-t-lg"></div>
-              </div>
-            ))}
-          </div>
-        </div>
-
-        {/* Quick Generate Card */}
+        {/* Generate Card */}
         <div className="bg-[#131722] p-4 rounded-2xl border border-[#1f2937]">
           <input type="text" value={url} onChange={(e) => setUrl(e.target.value)} placeholder="Paste URL..." className="w-full bg-[#0b0e14] p-3 rounded-xl border border-[#1f2937] mb-3 text-sm outline-none" />
           <input type="text" value={alias} onChange={(e) => setAlias(e.target.value)} placeholder="Custom Alias (Optional)" className="w-full bg-[#0b0e14] p-3 rounded-xl border border-[#1f2937] mb-3 text-sm outline-none" />
           <button onClick={handleGenerate} className="w-full bg-purple-600 p-3 rounded-xl font-black text-xs uppercase">Generate Link</button>
-          
-          {generatedLink && (
-            <div className="mt-4 p-3 bg-[#0b0e14] rounded-xl border border-purple-900 flex justify-between items-center">
-              <span className="text-xs font-bold truncate">{generatedLink}</span>
-              <button onClick={() => navigator.clipboard.writeText(generatedLink)} className="text-[10px] bg-purple-600 px-3 py-1 rounded-lg font-black uppercase">Copy</button>
-            </div>
-          )}
+          {generatedLink && <div className="mt-4 p-3 bg-[#0b0e14] rounded-xl border border-purple-900 flex justify-between items-center"><span className="text-xs font-bold">{generatedLink}</span><button onClick={() => navigator.clipboard.writeText(generatedLink)} className="text-[10px] bg-purple-600 px-3 py-1 rounded-lg font-black uppercase">Copy</button></div>}
+        </div>
+
+        {/* Analysis Section (Sabse neeche) */}
+        <div className="bg-[#131722] p-4 rounded-2xl border border-[#1f2937]">
+          <p className="text-[10px] font-black uppercase text-gray-500 mb-4">Traffic Analysis</p>
+          <div className="h-32 flex items-end gap-2">
+            {[40, 70, 45, 90, 60, 80].map((h, i) => (
+              <div key={i} className="flex-1 bg-[#1f2937] rounded-t-lg relative"><div style={{ height: `${h}%` }} className="absolute bottom-0 w-full bg-purple-600 rounded-t-lg"></div></div>
+            ))}
+          </div>
         </div>
       </main>
-
       <Navbar active="home" />
     </div>
   );
-}
+  }
+            
