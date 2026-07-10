@@ -3,13 +3,10 @@ import { doc, getDoc, updateDoc, increment } from "firebase/firestore";
 import { redirect } from "next/navigation";
 
 export default async function RedirectPage({ params }) {
-  // Folder ka naam [alias] hai, toh alias hi use karna hoga
-  const { alias } = params; 
-  
-  try {
-    if (!alias) return <div className="text-white text-center">Invalid Alias</div>;
+  const { alias } = params; // Yahan [alias] folder ke naam se match kiya
 
-    const urlRef = doc(db, "urls", alias); // Yahan code ki jagah alias use kiya
+  try {
+    const urlRef = doc(db, "urls", alias);
     const urlSnap = await getDoc(urlRef);
 
     if (urlSnap.exists()) {
