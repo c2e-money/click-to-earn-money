@@ -14,21 +14,24 @@ export default async function RedirectPage({ params }) {
       const data = urlSnap.data();
       targetUrl = data.originalUrl;
 
-      // 1. Click Update (Safe Mode)
-      updateDoc(urlRef, { clicks: increment(1) }).catch(console.error);
+      // Click update logic
+      await updateDoc(urlRef, { clicks: increment(1) });
 
-      // 2. Global CPM Earning logic
+      // CPM Earning logic
+      const settingsSnap = await getDoc(doc(db, "settings", "global"));
+      const cpm = settingsSnap.exists() ? settingsSnap.data().cpm : 5.00;
+      
       if (data.userId) {
-          const settingsSnap = await getDoc(doc(db, "settings", "global"));
-          const cpm = settingsSnap.exists() ? settingsSnap.data().cpm : 5.00;
-          
-          updateDoc(doc(db, "users", data.userId), { 
+          await updateDoc(doc(db, "users", data.userId), { 
               walletBalance: increment(cpm / 1000) 
-          }).catch(console.error);
+          });
       }
     }
-  } catch (e) { console.error("Error:", e); }
+  } catch (e) { console.error("Firebase Error:", e); }
 
-  if (targetUrl) redirect(targetUrl);
-  return <div style={{color:'white', textAlign:'center', marginTop:'50px'}}><h1>Link Invalid or Error</h1></div>;
+  if (targetUrl) {
+    redirect(targetUrl);
+  } else {
+    return <div style={{color:'white', textAlign:'center', marginTop:'50px'}}><h1>Link Invalid or Error</h1></div>;
+  }
 }
