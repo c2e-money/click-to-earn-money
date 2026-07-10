@@ -1,13 +1,19 @@
 "use client";
 import { useState, useEffect } from "react";
 import Navbar from "@/app/components/Navbar";
+import { db } from "@/app/lib/firebase";
+import { doc, getDoc } from "firebase/firestore";
 
 export default function Links() {
   const [links, setLinks] = useState([]);
   useEffect(() => {
-    const userId = localStorage.getItem("loggedInUserId");
-    const allData = JSON.parse(localStorage.getItem("allUsersLinks") || "{}");
-    setLinks(allData[userId] || []);
+    const fetchData = async () => {
+      const userId = localStorage.getItem("loggedInUserId");
+      if (!userId) return;
+      const docSnap = await getDoc(doc(db, "users", userId));
+      if (docSnap.exists()) setLinks(docSnap.data().links || []);
+    };
+    fetchData();
   }, []);
 
   return (
