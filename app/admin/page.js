@@ -13,11 +13,8 @@ export default function AdminPage() {
   useEffect(() => { if (isAdmin) fetchData(); }, [isAdmin]);
 
   const fetchData = async () => {
-    // Global CPM Fetch
     const settingsSnap = await getDoc(doc(db, "settings", "global"));
     if (settingsSnap.exists()) setGlobalCpm(settingsSnap.data().cpm);
-
-    // Users Fetch
     const snap = await getDocs(collection(db, "users"));
     setUsers(snap.docs.map(doc => ({ id: doc.id, ...doc.data() })));
   };
@@ -32,7 +29,7 @@ export default function AdminPage() {
 
   const updateGlobalCpm = async () => {
     await setDoc(doc(db, "settings", "global"), { cpm: parseFloat(globalCpm) });
-    alert("Global CPM updated for all users!");
+    alert("Global CPM updated for all!");
   };
 
   const updateBalance = async (uid, amount, type) => {
@@ -42,7 +39,6 @@ export default function AdminPage() {
     fetchData();
   };
 
-  // LOGIN UI
   if (!isAdmin) {
     return (
       <div className="h-screen bg-[#050608] flex items-center justify-center p-6">
@@ -56,21 +52,16 @@ export default function AdminPage() {
     );
   }
 
-  // DASHBOARD UI (Mobile First Cards)
   return (
     <div className="bg-[#050608] text-white min-h-screen p-4 pb-20">
       <h1 className="text-xl font-black uppercase italic mb-6 text-purple-500 text-center">LG CONTROL PANEL</h1>
-      
-      {/* Global CPM Card */}
       <div className="bg-[#0b0e14] p-5 rounded-3xl border border-[#1f2937] mb-6">
-        <p className="text-[9px] font-black text-gray-500 uppercase mb-2">Global CPM Settings ($)</p>
+        <p className="text-[9px] font-black text-gray-500 uppercase mb-2">Global CPM ($)</p>
         <div className="flex gap-2">
             <input type="number" value={globalCpm} onChange={(e) => setGlobalCpm(e.target.value)} className="w-full bg-[#050608] p-3 rounded-xl border border-[#1f2937]" />
             <button onClick={updateGlobalCpm} className="bg-purple-600 px-6 rounded-xl font-black uppercase text-[10px]">Update</button>
         </div>
       </div>
-
-      {/* User Cards */}
       <div className="space-y-4">
         <h2 className="text-[10px] font-black text-gray-400 uppercase italic">Registered Users ({users.length})</h2>
         {users.map(u => (
@@ -88,5 +79,5 @@ export default function AdminPage() {
       </div>
     </div>
   );
-      }
-          
+                                                             }
+  
