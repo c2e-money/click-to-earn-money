@@ -1,8 +1,8 @@
 "use client";
 import { useState, useEffect } from "react";
 import Navbar from "@/app/components/Navbar";
-import { db } from "@/app/lib/firebase";
-import { doc, getDoc, setDoc, updateDoc, arrayUnion } from "firebase/firestore";
+import { db } from "../../lib/firebase"; 
+import { doc, setDoc, arrayUnion } from "firebase/firestore";
 
 export default function Dashboard() {
   const [url, setUrl] = useState("");
@@ -10,15 +10,14 @@ export default function Dashboard() {
   const [userId, setUserId] = useState(null);
 
   useEffect(() => {
-    setUserId(localStorage.getItem("loggedInUserId"));
+    setUserId(localStorage.getItem("loggedInUserId") || "guest");
   }, []);
 
   const handleGenerate = async () => {
-    if (!url || !userId) return;
+    if (!url || !userId) return alert("Error!");
     const newLink = { id: Date.now(), url, alias: alias || "c2e.com/" + Date.now().toString().slice(-4), clicks: 0 };
-    const userRef = doc(db, "users", userId);
-    await setDoc(userRef, { links: arrayUnion(newLink) }, { merge: true });
-    alert("Link Generated & Saved!");
+    await setDoc(doc(db, "users", userId), { links: arrayUnion(newLink) }, { merge: true });
+    alert("Generated!");
     setUrl(""); setAlias("");
   };
 
@@ -48,4 +47,5 @@ export default function Dashboard() {
       <Navbar active="home" />
     </div>
   );
-                                                                                                                                                                                          }
+    }
+  
