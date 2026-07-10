@@ -4,7 +4,6 @@ import { redirect } from "next/navigation";
 
 export default async function RedirectPage({ params }) {
   const { alias } = await params;
-  
   let targetUrl = null;
 
   try {
@@ -13,32 +12,23 @@ export default async function RedirectPage({ params }) {
 
     if (urlSnap.exists()) {
       const data = urlSnap.data();
-      targetUrl = data.originalUrl; // URL nikaal liya
+      targetUrl = data.originalUrl;
 
-      // Database update (Isse 'await' mat karo taaki error aaye toh bhi redirect na ruke)
+      // 1. Click Update (Safe Mode)
       updateDoc(urlRef, { clicks: increment(1) }).catch(console.error);
 
+      // 2. Global CPM Earning logic
       if (data.userId) {
-          getDoc(doc(db, "settings", "global")).then(settingsSnap => {
-              const cpm = settingsSnap.exists() ? settingsSnap.data().cpm : 5.00;
-              updateDoc(doc(db, "users", data.userId), { 
-                  walletBalance: increment(cpm / 1000) 
-              }).catch(console.error);
-          });
+          const settingsSnap = await getDoc(doc(db, "settings", "global"));
+          const cpm = settingsSnap.exists() ? settingsSnap.data().cpm : 5.00;
+          
+          updateDoc(doc(db, "users", data.userId), { 
+              walletBalance: increment(cpm / 1000) 
+          }).catch(console.error);
       }
     }
-  } catch (e) {
-    console.error("Database Error:", e);
-  }
+  } catch (e) { console.error("Error:", e); }
 
-  // Agar targetUrl mil gaya, toh redirect karo
-  if (targetUrl) {
-    redirect(targetUrl);
-  }
-
-  return (
-    <div style={{color: 'white', textAlign: 'center', marginTop: '50px'}}>
-      <h1>Link Invalid or Error</h1>
-    </div>
-  );
+  if (targetUrl) redirect(targetUrl);
+  return <div style={{color:'white', textAlign:'center', marginTop:'50px'}}><h1>Link Invalid or Error</h1></div>;
 }
