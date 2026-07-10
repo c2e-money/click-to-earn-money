@@ -30,7 +30,7 @@ export default function Links() {
       <main className="flex-1 overflow-y-auto p-4 space-y-4 pb-24">
         <div className="bg-[#131722] p-4 rounded-2xl border border-[#1f2937]">
           <input type="text" value={url} onChange={(e) => setUrl(e.target.value)} placeholder="Paste URL..." className="w-full bg-[#0b0e14] p-3 rounded-xl border border-[#1f2937] mb-3 text-sm outline-none" />
-          <input type="text" value={alias} onChange={(e) => setAlias(e.target.value)} placeholder="Custom Alias" className="w-full bg-[#0b0e14] p-3 rounded-xl border border-[#1f2937] mb-3 text-sm outline-none" />
+          <input type="text" value={alias} onChange={(e) => setAlias(e.target.value)} placeholder="Custom Alias (Optional)" className="w-full bg-[#0b0e14] p-3 rounded-xl border border-[#1f2937] mb-3 text-sm outline-none" />
           <button onClick={handleGenerate} className="w-full bg-purple-600 p-3 rounded-xl font-black text-xs uppercase">Generate Link</button>
         </div>
         <div className="space-y-3">
@@ -45,4 +45,4 @@ export default function Links() {
       <Navbar active="links" />
     </div>
   );
-            }
+}
