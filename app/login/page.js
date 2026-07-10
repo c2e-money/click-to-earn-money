@@ -1,25 +1,40 @@
 "use client";
-// ... (imports wahi rahenge)
+import { useState } from "react";
+import { auth, db } from "@/lib/firebase";
+import { signInWithEmailAndPassword, createUserWithEmailAndPassword } from "firebase/auth";
+import { doc, setDoc } from "firebase/firestore";
 
 export default function Login() {
-  // ... (logic wahi rahega)
+  const [isLogin, setIsLogin] = useState(true);
+  const [email, setEmail] = useState("");
+  const [password, setPassword] = useState("");
+
+  const handleAuth = async (e) => {
+    e.preventDefault();
+    try {
+      if (isLogin) {
+        await signInWithEmailAndPassword(auth, email, password);
+      } else {
+        const cred = await createUserWithEmailAndPassword(auth, email, password);
+        await setDoc(doc(db, "users", cred.user.uid), { email, walletBalance: 0 });
+      }
+      // Build fix: Simple location redirect
+      window.location.href = "/dashboard"; 
+    } catch (err) { alert(err.message); }
+  };
 
   return (
-    <div className="min-h-screen bg-[#0b0e14] flex items-center justify-center p-4">
-      {/* Ab koi white strip nahi hogi, seedha dark background */}
-      <div className="bg-[#131722] border border-[#1f2937] p-8 rounded-2xl w-full max-w-md shadow-2xl">
-        <h2 className="text-2xl font-black text-white mb-2 text-center">Create Account</h2>
-        <p className="text-gray-400 text-sm text-center mb-6">Join us and start earning</p>
-        
+    <main className="min-h-screen bg-[#0b0e14] flex items-center justify-center p-4">
+      <div className="w-full max-w-md bg-[#131722] p-8 rounded-2xl border border-[#1f2937]">
+        <h1 className="text-2xl font-black text-white text-center mb-6">
+          {isLogin ? "Login" : "Sign Up"}
+        </h1>
         <form onSubmit={handleAuth} className="space-y-4">
-          <input type="email" placeholder="Email" onChange={(e) => setEmail(e.target.value)} className="w-full bg-[#0b0e14] border border-[#1f2937] text-white p-3 rounded-lg outline-none" required />
-          <input type="password" placeholder="Password" onChange={(e) => setPassword(e.target.value)} className="w-full bg-[#0b0e14] border border-[#1f2937] text-white p-3 rounded-lg outline-none" required />
-          
-          <button type="submit" className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 text-white font-bold py-3 rounded-lg">
-            {loading ? "..." : "SIGN UP"}
-          </button>
+          <input type="email" placeholder="Email" onChange={(e) => setEmail(e.target.value)} className="w-full bg-[#0b0e14] border border-[#1f2937] p-3 rounded-lg text-white outline-none" />
+          <input type="password" placeholder="Password" onChange={(e) => setPassword(e.target.value)} className="w-full bg-[#0b0e14] border border-[#1f2937] p-3 rounded-lg text-white outline-none" />
+          <button type="submit" className="w-full bg-purple-600 py-3 rounded-lg font-black">CONTINUE</button>
         </form>
       </div>
-    </div>
+    </main>
   );
 }
