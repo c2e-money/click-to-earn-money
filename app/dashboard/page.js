@@ -1,12 +1,41 @@
 "use client";
-import { useState } from "react";
+import { useState, useEffect } from "react";
+import { db } from "@/lib/firebase"; // Tera firebase path
+import { doc, onSnapshot, collection, addDoc } from "firebase/firestore";
 
-export default function Dashboard() {
+export default function Dashboard({ user }) {
   const [activeTab, setActiveTab] = useState("HOME");
+  const [data, setData] = useState({ clicks: 0, earnings: 0, withdrawal: 0, cpm: 0 });
+  const [url, setUrl] = useState("");
+  const [alias, setAlias] = useState("");
+
+  useEffect(() => {
+    if (!user) return;
+    // User Stats load karna
+    const unsubUser = onSnapshot(doc(db, "users", user.uid), (doc) => {
+      if (doc.exists()) setData(prev => ({ ...prev, ...doc.data() }));
+    });
+    // Admin CPM load karna
+    const unsubCpm = onSnapshot(doc(db, "settings", "global"), (doc) => {
+      if (doc.exists()) setData(prev => ({ ...prev, cpm: doc.data().cpm }));
+    });
+    return () => { unsubUser(); unsubCpm(); };
+  }, [user]);
+
+  const generateLink = async () => {
+    if (!url) return alert("URL daalo!");
+    await addDoc(collection(db, "urls"), {
+      originalUrl: url,
+      code: alias || Math.random().toString(36).substring(7),
+      userId: user.uid,
+      createdAt: new Date()
+    });
+    alert("Link Generated!");
+    setUrl(""); setAlias("");
+  };
 
   return (
     <div className="bg-[#050608] text-white min-h-screen font-sans pb-24">
-      
       {/* Header */}
       <header className="p-4 flex justify-between items-center border-b border-[#1f2937]">
         <h1 className="font-black text-lg italic text-purple-500">C2E DASHBOARD</h1>
@@ -18,30 +47,30 @@ export default function Dashboard() {
         <div className="grid grid-cols-2 gap-3 mb-6">
           <div className="bg-[#0b0e14] p-4 rounded-2xl border border-[#1f2937]">
             <p className="text-[8px] text-gray-500 uppercase font-black">Clicks</p>
-            <h2 className="text-lg font-black">0</h2>
+            <h2 className="text-lg font-black">{data.clicks || 0}</h2>
           </div>
           <div className="bg-[#0b0e14] p-4 rounded-2xl border border-[#1f2937]">
             <p className="text-[8px] text-gray-500 uppercase font-black">Withdrawal</p>
-            <h2 className="text-lg font-black">$0.00</h2>
+            <h2 className="text-lg font-black">${(data.withdrawal || 0).toFixed(2)}</h2>
           </div>
           <div className="bg-[#0b0e14] p-4 rounded-2xl border border-[#1f2937]">
             <p className="text-[8px] text-gray-500 uppercase font-black">CPM</p>
-            <h2 className="text-lg font-black">$0.00</h2>
+            <h2 className="text-lg font-black">${(data.cpm || 0).toFixed(2)}</h2>
           </div>
           <div className="bg-[#0b0e14] p-4 rounded-2xl border border-[#1f2937]">
             <p className="text-[8px] text-gray-500 uppercase font-black">Earnings</p>
-            <h2 className="text-lg font-black text-emerald-400 italic">$0.00</h2>
+            <h2 className="text-lg font-black text-emerald-400 italic">${(data.earnings || 0).toFixed(2)}</h2>
           </div>
         </div>
 
         {/* Generator */}
         <div className="bg-[#0b0e14] p-5 rounded-3xl border border-[#1f2937]">
-          <input className="w-full bg-[#050608] p-3 rounded-xl mb-3 border border-[#1f2937] text-xs outline-none" placeholder="Paste URL..." />
-          <input className="w-full bg-[#050608] p-3 rounded-xl mb-4 border border-[#1f2937] text-xs outline-none" placeholder="Custom Alias (Optional)" />
-          <button className="w-full bg-purple-600 py-3 rounded-xl font-black uppercase text-[11px] active:scale-95 transition-transform">Generate Link</button>
+          <input className="w-full bg-[#050608] p-3 rounded-xl mb-3 border border-[#1f2937] text-xs outline-none" placeholder="Paste URL..." value={url} onChange={(e) => setUrl(e.target.value)} />
+          <input className="w-full bg-[#050608] p-3 rounded-xl mb-4 border border-[#1f2937] text-xs outline-none" placeholder="Custom Alias (Optional)" value={alias} onChange={(e) => setAlias(e.target.value)} />
+          <button onClick={generateLink} className="w-full bg-purple-600 py-3 rounded-xl font-black uppercase text-[11px] active:scale-95 transition-transform">Generate Link</button>
         </div>
 
-        {/* Traffic Analysis */}
+        {/* Analysis */}
         <div className="bg-[#0b0e14] p-5 rounded-3xl border border-[#1f2937] mt-6">
           <h2 className="text-[10px] font-black uppercase mb-4 italic text-gray-500">Traffic Analysis</h2>
           <div className="text-center text-[10px] text-gray-700 py-4 italic">No traffic yet</div>
@@ -69,5 +98,4 @@ export default function Dashboard() {
       </nav>
     </div>
   );
-          }
-  
+}
