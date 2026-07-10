@@ -1,5 +1,6 @@
 /** @type {import('next').NextConfig} */
 const nextConfig = {
-  images: { unoptimized: true }, // Static export ke liye zaroori hai
+  // output: 'export',  <-- Isse hata do
+  images: { unoptimized: true },
 }
 module.exports = nextConfig
