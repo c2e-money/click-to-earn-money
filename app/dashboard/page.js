@@ -1,61 +1,84 @@
 "use client";
-import { useEffect, useState } from "react";
-import { db, auth } from "@/lib/firebase";
-import { doc, onSnapshot } from "firebase/firestore";
+import { useState } from "react";
+import { Home, Link2, Wallet, Copy, Check } from "lucide-react";
+import Link from "next/link";
 
 export default function Dashboard() {
-  const [data, setData] = useState({ balance: 0.00, clicks: 0 });
+  const [copied, setCopied] = useState(false);
+  const [shortUrl, setShortUrl] = useState("");
 
-  useEffect(() => {
-    if (!auth.currentUser) return;
-    const unsub = onSnapshot(doc(db, "users", auth.currentUser.uid), (doc) => {
-      if (doc.exists()) setData(doc.data());
-    });
-    return () => unsub();
-  }, []);
+  const handleGenerate = () => {
+    // Yahan apna Shortening API call logic dalna
+    setShortUrl("click.to/isagi-bundle");
+  };
+
+  const handleCopy = () => {
+    navigator.clipboard.writeText(shortUrl);
+    setCopied(true);
+    setTimeout(() => setCopied(false), 2000);
+  };
 
   return (
-    <main className="min-h-screen bg-[#0b0e14] text-white p-6 pb-24">
+    <div className="flex flex-col h-screen bg-[#0b0e14] text-white font-sans">
+      
       {/* Header */}
-      <header className="flex justify-between items-center mb-10">
-        <h1 className="text-xl font-black italic uppercase">CLICK TO EARN</h1>
-        <div className="w-8 h-8 rounded-full bg-purple-600/20 border border-purple-500/30"></div>
+      <header className="p-4 border-b border-[#1f2937] flex items-center justify-between">
+        <h1 className="text-lg font-black italic uppercase">CLICK TO EARN</h1>
+        <div className="w-8 h-8 rounded-full bg-purple-600/20 border border-purple-500/30 flex items-center justify-center text-[10px] font-black">LG</div>
       </header>
 
-      {/* Balance Section - The Lure */}
-      <div className="bg-gradient-to-br from-[#1a1c29] to-[#131722] p-8 rounded-3xl border border-[#1f2937] text-center mb-8 shadow-2xl">
-        <p className="text-[10px] text-gray-400 font-bold uppercase tracking-widest">Available Balance</p>
-        <p className="text-5xl font-black text-emerald-400 my-3">${data.balance.toFixed(2)}</p>
-        <p className="text-[10px] text-gray-500 font-bold uppercase">Keep shortening to grow your earnings</p>
-      </div>
-
-      {/* Quick Stats */}
-      <div className="grid grid-cols-2 gap-4 mb-8">
-        <div className="bg-[#131722] p-5 rounded-2xl border border-[#1f2937]">
-          <p className="text-[9px] text-gray-500 font-bold uppercase">Total Clicks</p>
-          <p className="text-xl font-black">{data.clicks}</p>
+      {/* Main Content */}
+      <main className="flex-1 overflow-y-auto p-4 space-y-4">
+        {/* Balance */}
+        <div className="bg-gradient-to-br from-[#1a1c29] to-[#131722] p-6 rounded-2xl border border-[#1f2937]">
+          <p className="text-[9px] text-gray-400 font-bold uppercase tracking-widest">Available Balance</p>
+          <p className="text-4xl font-black text-emerald-400 mt-1">$0.00</p>
         </div>
-        <div className="bg-[#131722] p-5 rounded-2xl border border-[#1f2937]">
-          <p className="text-[9px] text-gray-500 font-bold uppercase">Avg CPM</p>
-          <p className="text-xl font-black text-purple-400">$4.50</p>
-        </div>
-      </div>
 
-      {/* Link Shortener */}
-      <div className="bg-[#131722] p-6 rounded-3xl border border-[#1f2937] mb-8">
-        <h2 className="text-sm font-black mb-4 uppercase">Shorten New Link</h2>
-        <input type="text" placeholder="Paste your long URL here..." className="w-full bg-[#0b0e14] border border-[#1f2937] p-4 rounded-xl mb-3 text-sm focus:border-purple-500 outline-none" />
-        <button className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 py-4 rounded-xl font-black text-sm hover:opacity-90 transition">
-          SHORTEN URL
-        </button>
-      </div>
+        {/* Shortener */}
+        <div className="bg-[#131722] p-5 rounded-2xl border border-[#1f2937]">
+          <h2 className="text-[10px] font-black uppercase mb-3">Shorten New Link</h2>
+          <input type="text" placeholder="Paste URL..." className="w-full bg-[#0b0e14] border border-[#1f2937] p-3 rounded-lg text-sm mb-2 outline-none" />
+          <input type="text" placeholder="Custom Alias (Optional)" className="w-full bg-[#0b0e14] border border-[#1f2937] p-3 rounded-lg text-sm mb-3 outline-none" />
+          <button onClick={handleGenerate} className="w-full bg-purple-600 py-3 rounded-lg font-black text-xs uppercase">Generate Link</button>
+
+          {shortUrl && (
+            <div className="mt-4 bg-[#0b0e14] p-3 rounded-xl border border-purple-500/30 flex justify-between items-center">
+              <span className="text-xs font-bold text-purple-400 truncate mr-2">{shortUrl}</span>
+              <button onClick={handleCopy} className="bg-purple-600 px-3 py-1.5 rounded-lg">
+                {copied ? <Check size={14} /> : <Copy size={14} />}
+              </button>
+            </div>
+          )}
+        </div>
+
+        {/* Analytics */}
+        <div className="bg-[#131722] p-5 rounded-2xl border border-[#1f2937]">
+          <h2 className="text-[10px] font-black uppercase mb-4">Traffic Analytics</h2>
+          <div className="flex items-end justify-between h-20 gap-2">
+            {[30, 60, 100, 70, 40, 90].map((h, i) => (
+              <div key={i} style={{ height: `${h}%` }} className="w-1/6 bg-purple-600/50 rounded-t-lg"></div>
+            ))}
+          </div>
+        </div>
+      </main>
 
       {/* Bottom Nav */}
-      <nav className="fixed bottom-0 left-0 w-full bg-[#0b0e14]/90 backdrop-blur-md border-t border-[#1f2937] flex justify-around p-4">
-        <div className="text-purple-400 font-black text-[10px] uppercase">Home</div>
-        <div className="text-gray-500 font-black text-[10px] uppercase">Links</div>
-        <div className="text-gray-500 font-black text-[10px] uppercase">Withdraw</div>
+      <nav className="bg-[#0b0e14] border-t border-[#1f2937] p-3 flex justify-around">
+        <Link href="/dashboard" className="flex flex-col items-center text-purple-400">
+          <Home size={20} />
+          <span className="text-[9px] font-black uppercase mt-1">Home</span>
+        </Link>
+        <Link href="/dashboard/links" className="flex flex-col items-center text-gray-500">
+          <Link2 size={20} />
+          <span className="text-[9px] font-black uppercase mt-1">Links</span>
+        </Link>
+        <Link href="/dashboard/withdraw" className="flex flex-col items-center text-gray-500">
+          <Wallet size={20} />
+          <span className="text-[9px] font-black uppercase mt-1">Withdraw</span>
+        </Link>
       </nav>
-    </main>
+    </div>
   );
-        }
+                  }
+        
