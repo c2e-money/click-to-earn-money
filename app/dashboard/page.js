@@ -1,6 +1,8 @@
 "use client";
 import { useState, useEffect } from "react";
 import Navbar from "@/app/components/Navbar";
+import { db } from "@/app/lib/firebase";
+import { doc, getDoc, setDoc, updateDoc, arrayUnion } from "firebase/firestore";
 
 export default function Dashboard() {
   const [url, setUrl] = useState("");
@@ -11,15 +13,12 @@ export default function Dashboard() {
     setUserId(localStorage.getItem("loggedInUserId"));
   }, []);
 
-  const handleGenerate = () => {
-    if (!url) return alert("URL daalo!");
-    const allData = JSON.parse(localStorage.getItem("allUsersLinks") || "{}");
-    const userLinks = allData[userId] || [];
+  const handleGenerate = async () => {
+    if (!url || !userId) return;
     const newLink = { id: Date.now(), url, alias: alias || "c2e.com/" + Date.now().toString().slice(-4), clicks: 0 };
-    
-    allData[userId] = [newLink, ...userLinks];
-    localStorage.setItem("allUsersLinks", JSON.stringify(allData));
-    alert("Link Generated!");
+    const userRef = doc(db, "users", userId);
+    await setDoc(userRef, { links: arrayUnion(newLink) }, { merge: true });
+    alert("Link Generated & Saved!");
     setUrl(""); setAlias("");
   };
 
@@ -49,5 +48,4 @@ export default function Dashboard() {
       <Navbar active="home" />
     </div>
   );
-    }
-  
+                                                                                                                                                                                          }
