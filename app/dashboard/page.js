@@ -8,12 +8,7 @@ export default function Dashboard() {
   const handleGenerate = () => {
     if (!url) return alert("URL daalo!");
     const saved = JSON.parse(localStorage.getItem("myLinks") || "[]");
-    const newLink = { 
-      id: Date.now(), 
-      url: url, 
-      alias: "c2e.com/" + Date.now().toString().slice(-4), 
-      clicks: 0 
-    };
+    const newLink = { id: Date.now(), url: url, alias: "c2e.com/" + Date.now().toString().slice(-4), clicks: 0 };
     localStorage.setItem("myLinks", JSON.stringify([newLink, ...saved]));
     alert("Link Generated!");
     setUrl("");
@@ -21,10 +16,33 @@ export default function Dashboard() {
 
   return (
     <div className="flex flex-col h-screen bg-[#0b0e14] text-white">
-      <header className="p-4 border-b border-[#1f2937] font-black text-lg uppercase">Dashboard</header>
-      
+      <header className="p-4 border-b border-[#1f2937] flex justify-between items-center shrink-0">
+        <h1 className="text-lg font-black italic uppercase tracking-wider">DASHBOARD</h1>
+        <div className="w-8 h-8 rounded-full bg-purple-600 flex items-center justify-center text-[10px] font-black">LG</div>
+      </header>
+
       <main className="flex-1 overflow-y-auto p-4 space-y-4 pb-24">
-        {/* Tumhara original card design */}
+        {/* Stats Grid */}
+        <div className="grid grid-cols-2 gap-3">
+          <div className="bg-[#131722] p-4 rounded-2xl border border-[#1f2937]">
+            <p className="text-[9px] font-bold text-gray-500 uppercase">Total Clicks</p>
+            <p className="text-lg font-black text-white">0</p>
+          </div>
+          <div className="bg-[#131722] p-4 rounded-2xl border border-[#1f2937]">
+            <p className="text-[9px] font-bold text-gray-500 uppercase">Total Withdrawal</p>
+            <p className="text-lg font-black text-emerald-400">$0.00</p>
+          </div>
+          <div className="bg-[#131722] p-4 rounded-2xl border border-[#1f2937]">
+            <p className="text-[9px] font-bold text-gray-500 uppercase">Current CPM</p>
+            <p className="text-lg font-black text-white">$0.00</p>
+          </div>
+          <div className="bg-[#131722] p-4 rounded-2xl border border-[#1f2937]">
+            <p className="text-[9px] font-bold text-gray-500 uppercase">Total Earnings</p>
+            <p className="text-lg font-black text-purple-500">$0.00</p>
+          </div>
+        </div>
+
+        {/* Quick Generate */}
         <div className="bg-[#131722] p-4 rounded-2xl border border-[#1f2937]">
           <input 
             type="text" 
@@ -45,4 +63,4 @@ export default function Dashboard() {
       <Navbar active="home" />
     </div>
   );
-}
+              }
