@@ -42,6 +42,19 @@ export default function Dashboard() {
           </div>
         </div>
 
+        {/* Analysis/Graph Section */}
+        <div className="bg-[#131722] p-4 rounded-2xl border border-[#1f2937]">
+          <p className="text-[10px] font-black uppercase text-gray-500 mb-4">Traffic Analysis</p>
+          <div className="h-32 flex items-end gap-2">
+            {/* Visual bars representation */}
+            {[40, 70, 45, 90, 60, 80].map((h, i) => (
+              <div key={i} className="flex-1 bg-[#1f2937] rounded-t-lg relative group">
+                <div style={{ height: `${h}%` }} className="absolute bottom-0 w-full bg-purple-600 rounded-t-lg transition-all"></div>
+              </div>
+            ))}
+          </div>
+        </div>
+
         {/* Quick Generate */}
         <div className="bg-[#131722] p-4 rounded-2xl border border-[#1f2937]">
           <input 
