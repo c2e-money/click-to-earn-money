@@ -1,34 +1,25 @@
 "use client";
-import { useState } from "react";
-import { auth, db } from "@/lib/firebase";
-import { doc, updateDoc } from "firebase/firestore";
-
 export default function Settings() {
-  const [upi, setUpi] = useState("");
-  const [loading, setLoading] = useState(false);
-
-  const saveDetails = async (e) => {
-    e.preventDefault();
-    setLoading(true);
-    await updateDoc(doc(db, "users", auth.currentUser.uid), { upiId: upi });
-    alert("Payment details saved!");
-    setLoading(false);
-  };
-
   return (
-    <div className="max-w-xl mx-auto mt-6 p-6 bg-neutral-900 border border-neutral-800 rounded-2xl">
-      <h2 className="text-xl font-black text-white mb-6">Payment Settings</h2>
-      <form onSubmit={saveDetails} className="space-y-4">
-        <input 
-          type="text" 
-          placeholder="Enter UPI ID (e.g. name@upi)" 
-          value={upi} 
-          onChange={(e) => setUpi(e.target.value)}
-          className="w-full bg-neutral-950 border border-neutral-800 p-4 rounded-xl text-white font-bold"
-        />
-        <button className="w-full bg-emerald-500 py-4 rounded-xl font-black text-neutral-950">Save Details</button>
-      </form>
+    <div className="h-screen bg-[#0b0e14] text-white p-4">
+      <h1 className="text-lg font-black uppercase mb-6">Account Settings</h1>
+      
+      <div className="space-y-4">
+        {/* Email & Password Change */}
+        <div className="bg-[#131722] p-4 rounded-2xl border border-[#1f2937]">
+          <input type="email" placeholder="New Email" className="w-full bg-[#0b0e14] p-3 rounded-lg border border-[#1f2937] mb-2" />
+          <input type="password" placeholder="New Password" className="w-full bg-[#0b0e14] p-3 rounded-lg border border-[#1f2937] mb-3" />
+          <button className="w-full bg-purple-600 p-3 rounded-lg font-black text-xs uppercase">Update Profile</button>
+        </div>
+
+        {/* Contact Admin */}
+        <div className="bg-[#131722] p-4 rounded-2xl border border-[#1f2937] text-center">
+          <p className="text-gray-400 text-xs mb-3">Need help? Contact Admin</p>
+          <a href="mailto:admin@c2e.com" className="block w-full bg-emerald-600 p-3 rounded-lg font-black text-xs uppercase">
+            Contact Support
+          </a>
+        </div>
+      </div>
     </div>
   );
 }
-
