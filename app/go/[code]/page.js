@@ -7,17 +7,14 @@ import { collection, query, where, getDocs, doc, updateDoc, increment, getDoc } 
 export default function AdPage({ params }) {
   const searchParams = useSearchParams();
   const step = parseInt(searchParams.get("step")) || 1;
-  const [timer, setTimer] = useState(step === 4 ? 5 : 30);
+  const [showModal, setShowModal] = useState(false);
   const [canContinue, setCanContinue] = useState(false);
 
+  // Timer sirf popup ke liye, button visible karne ke liye nahi
   useEffect(() => {
-    if (timer > 0) {
-      const interval = setInterval(() => setTimer(timer - 1), 1000);
-      return () => clearInterval(interval);
-    } else {
-      setCanContinue(true);
-    }
-  }, [timer]);
+    const timer = setTimeout(() => setCanContinue(true), 15000);
+    return () => clearTimeout(timer);
+  }, []);
 
   const handleContinue = async () => {
     if (step < 4) {
@@ -30,51 +27,52 @@ export default function AdPage({ params }) {
         const docData = snap.docs[0].data();
         const settings = await getDoc(doc(db, "settings", "global"));
         const cpm = settings.exists() ? settings.data().cpm : 0;
-        await updateDoc(doc(db, "users", docData.userId), {
-          clicks: increment(1),
-          earnings: increment(cpm / 1000)
-        });
+        await updateDoc(doc(db, "users", docData.userId), { clicks: increment(1), earnings: increment(cpm / 1000) });
         window.location.href = docData.originalUrl;
       }
     }
   };
 
   return (
-    <div className="bg-white min-h-screen text-black font-sans">
-      {/* 1. Header Ad (Top) */}
-      <div className="text-center py-2 bg-gray-100">
-        <script src="https://rightyrely.com/67/f2/56/67f25683cd971ba173dadc88bb3b3a13.js"></script>
+    <div className="bg-white text-black min-h-screen p-2 text-center">
+      <div className="font-black text-lg mb-2">STEP {step} OF 4</div>
+
+      {/* Ad 1 & 2: Top */}
+      <script src="https://rightyrely.com/67/f2/56/67f25683cd971ba173dadc88bb3b3a13.js"></script>
+      <div className="my-2"><script src="https://rightyrely.com/4f8b4de41cea03dc9d830849c3900efa/invoke.js"></script></div>
+
+      {/* Yellow Box ke upar Banner */}
+      <div className="my-2"><div id="container-b594fd33ac3477b8549752f47e5a4e56"><script src="https://rightyrely.com/b594fd33ac3477b8549752f47e5a4e56/invoke.js"></script></div></div>
+
+      {/* Yellow Box */}
+      <div className="border-2 border-yellow-300 bg-yellow-50 p-3 rounded-lg my-4">
+        <p className="font-bold text-xs">👇 Click Banner Wait 15s 👇</p>
       </div>
 
-      <div className="p-4">
-        {/* Instruction Box (Yellow) */}
-        <div className="border-2 border-yellow-300 bg-yellow-50 p-4 rounded-xl text-center mb-6">
-          <p className="font-bold text-sm">👆👇 Click banner and wait {timer > 0 ? timer : 10}s to unlock link 👆👇</p>
-          <p className="text-xs mt-2 text-red-600 font-bold">CLICK BANNER WAIT & BACK</p>
-        </div>
+      {/* Ad Cluster (10-12 Ads) */}
+      {[...Array(10)].map((_, i) => (
+        <div key={i} className="my-3 h-20 bg-gray-100 flex items-center justify-center text-[10px] text-gray-400">ADS UNIT {i+3}</div>
+      ))}
 
-        {/* 2. Main Ad Unit */}
-        <div id="container-b594fd33ac3477b8549752f47e5a4e56" className="flex justify-center my-8">
-          <script src="https://rightyrely.com/b594fd33ac3477b8549752f47e5a4e56/invoke.js"></script>
-        </div>
+      {/* Bottom Ad Sandwich */}
+      <div className="my-4"><script src="https://rightyrely.com/6c/3d/5e/6c3d5e71fdaab0f2fcbd03525c305b33.js"></script></div>
 
-        {/* Gap */}
-        <div className="h-64"></div>
-
-        {/* 3. Continue Button */}
-        <button 
-          onClick={handleContinue} 
-          disabled={!canContinue}
-          className={`w-full py-4 text-white font-bold text-lg rounded-lg ${canContinue ? "bg-blue-600" : "bg-gray-400"}`}
-        >
-          {timer > 0 ? `Please Wait ${timer}s` : "Continue"}
+      {/* Hidden/Chupa hua Continue Button */}
+      {canContinue && (
+        <button onClick={() => setShowModal(true)} className="w-24 h-8 bg-blue-600 text-white text-[10px] opacity-50 hover:opacity-100 mx-auto block mb-10">
+          CONTINUE
         </button>
+      )}
 
-        {/* 4. Footer Ad */}
-        <div className="mt-10">
-          <script src="https://rightyrely.com/4f8b4de41cea03dc9d830849c3900efa/invoke.js"></script>
+      {/* Modal Popup (Mandatory Click) */}
+      {showModal && (
+        <div className="fixed inset-0 bg-black/90 flex items-center justify-center z-50">
+          <div className="bg-white p-6 rounded-xl w-80 text-center">
+            <h3 className="font-black mb-4">CLICK POPUP BANNER FIRST!</h3>
+            <button onClick={handleContinue} className="w-full bg-red-600 text-white py-2 rounded">PROCEED</button>
+          </div>
         </div>
-      </div>
+      )}
     </div>
   );
-}
+        }
