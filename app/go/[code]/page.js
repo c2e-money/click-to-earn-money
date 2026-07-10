@@ -1,25 +1,32 @@
 import { redirect } from 'next/navigation';
 import { db } from '@/lib/firebase';
-import { collection, query, where, getDocs, doc, updateDoc, increment } from 'firebase/firestore';
+import { collection, query, where, getDocs, doc, updateDoc, increment, getDoc } from 'firebase/firestore';
 
 export default async function RedirectPage({ params }) {
   const { code } = params;
   
-  // 1. Link dhoondo
   const q = query(collection(db, "urls"), where("shortCode", "==", code));
   const querySnapshot = await getDocs(q);
 
   if (!querySnapshot.empty) {
     const docSnap = querySnapshot.docs[0];
     const docData = docSnap.data();
-    
-    // 2. Click count badhao (User ke collection mein)
-    const userRef = doc(db, "users", docData.userId);
+    const userId = docData.userId;
+
+    // Admin se current CPM fetch karo
+    const settingsSnap = await getDoc(doc(db, "settings", "global"));
+    const cpm = settingsSnap.exists() ? settingsSnap.data().cpm : 0;
+
+    // Earning calculation: (CPM / 1000) per click
+    const earningsPerClick = cpm / 1000;
+
+    // Firebase update: Clicks aur Earnings dono ek saath
+    const userRef = doc(db, "users", userId);
     await updateDoc(userRef, {
-      clicks: increment(1)
+      clicks: increment(1),
+      earnings: increment(earningsPerClick)
     });
 
-    // 3. Redirect
     redirect(docData.originalUrl);
   }
 
