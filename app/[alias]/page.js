@@ -5,27 +5,40 @@ import { permanentRedirect } from "next/navigation";
 export default async function RedirectPage({ params }) {
   const { alias } = await params;
   
-  // 1. Data fetch karo
   const urlRef = doc(db, "urls", alias);
   const urlSnap = await getDoc(urlRef);
 
-  // 2. Agar document mil gaya toh redirect karo
   if (urlSnap.exists()) {
-    const data = urlSnap.data();
+    const data = urlSnap.data(); // Isme 'userId' hona chahiye (jaise: userId: "user123")
     
-    // Clicks update karo (optional, agar error de toh is line ko comment kar dena)
+    // 1. Clicks aur CPM update ka logic
     try {
-        await updateDoc(urlRef, { clicks: increment(1) });
-    } catch(e) {}
+        // Global CPM fetch karo
+        const settingsSnap = await getDoc(doc(db, "settings", "global"));
+        const cpm = settingsSnap.exists() ? settingsSnap.data().cpm : 5.00; // Default 5
+        
+        // Earning calculation (Per click earning = CPM / 1000)
+        const perClickEarning = cpm / 1000;
 
-    // Redirect
+        // URL clicks increment karo
+        await updateDoc(urlRef, { clicks: increment(1) });
+
+        // User ka balance increment karo (Agar userId exist karti hai)
+        if (data.userId) {
+            await updateDoc(doc(db, "users", data.userId), { 
+                walletBalance: increment(perClickEarning) 
+            });
+        }
+    } catch(e) {
+        console.log("Error updating stats", e);
+    }
+
     permanentRedirect(data.originalUrl);
   }
 
-  // 3. Agar nahi mila toh 404
   return (
     <div style={{color: 'white', textAlign: 'center', marginTop: '50px'}}>
       <h1>404 - Link Not Found</h1>
     </div>
   );
-}
+    }
