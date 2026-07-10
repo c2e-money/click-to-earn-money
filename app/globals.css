@@ -2,13 +2,28 @@
 @tailwind components;
 @tailwind utilities;
 
-body {
-  background-color: #0b0e14;
+@layer base {
+  body {
+    background-color: #0b0e14;
+    color: #f3f4f6;
+    font-family: 'Inter', sans-serif;
+  }
 }
 
-/* Premium Card Style */
-.card-glass {
-  background: #131722;
-  border: 1px solid #1f2937;
-  border-radius: 1rem;
+@layer components {
+  .saas-card {
+    background: #131722;
+    border: 1px solid #1f2937;
+    border-radius: 16px;
+    padding: 24px;
+  }
+  .saas-btn {
+    background: linear-gradient(135deg, #7c3aed 0%, #4f46e5 100%);
+    color: white;
+    font-weight: 800;
+    padding: 12px 24px;
+    border-radius: 12px;
+    transition: opacity 0.2s;
+  }
+  .saas-btn:hover { opacity: 0.9; }
 }
