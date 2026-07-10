@@ -15,20 +15,25 @@ export default function Dashboard({ user }) {
   useEffect(() => {
     if (!user) return;
 
-    // Real-time Data Sync
+    // 1. User Balance Sync
     const unsubUser = onSnapshot(doc(db, "users", user.uid), (doc) => {
         if (doc.exists()) setBalance(doc.data().walletBalance || 0);
     });
+
+    // 2. Global CPM Sync
     const unsubCpm = onSnapshot(doc(db, "settings", "global"), (doc) => {
         if (doc.exists()) setCpm(doc.data().cpm || 2);
     });
+
+    // 3. Links aur Traffic Analysis Sync
     const q = query(collection(db, "urls"), where("userId", "==", user.uid));
     const unsubUrls = onSnapshot(q, (snapshot) => {
         let total = 0;
         let linkList = [];
         snapshot.forEach(doc => { 
-            total += doc.data().clicks || 0;
-            linkList.push({ id: doc.id, ...doc.data() });
+            const data = doc.data();
+            total += data.clicks || 0;
+            linkList.push({ id: doc.id, ...data });
         });
         setClicks(total);
         setLinks(linkList);
@@ -40,6 +45,7 @@ export default function Dashboard({ user }) {
   const generateLink = async () => {
     if(!url) return alert("URL daalo!");
     const finalAlias = alias || Math.random().toString(36).substring(7);
+    
     await addDoc(collection(db, "urls"), {
         originalUrl: url,
         code: finalAlias,
@@ -58,7 +64,7 @@ export default function Dashboard({ user }) {
         <div className="bg-purple-600 w-8 h-8 rounded-full flex items-center justify-center text-[10px] font-black">LG</div>
       </nav>
 
-      {/* STATS */}
+      {/* STATS SECTION */}
       <div className="grid grid-cols-2 gap-4 mb-6">
         <div className="bg-[#0b0e14] p-4 rounded-2xl border border-[#1f2937]">
             <p className="text-[9px] text-gray-500 font-black uppercase">Clicks</p>
@@ -78,11 +84,11 @@ export default function Dashboard({ user }) {
         </div>
       </div>
 
-      {/* GENERATOR */}
+      {/* LINK GENERATOR */}
       <div className="bg-[#0b0e14] p-6 rounded-3xl border border-[#1f2937] mb-8">
         <input className="w-full bg-[#050608] p-3 rounded-xl mb-3 border border-[#1f2937] text-sm" placeholder="Paste URL..." value={url} onChange={(e) => setUrl(e.target.value)} />
         <input className="w-full bg-[#050608] p-3 rounded-xl mb-4 border border-[#1f2937] text-sm" placeholder="Custom Alias (Optional)" value={alias} onChange={(e) => setAlias(e.target.value)} />
-        <button onClick={generateLink} className="w-full bg-purple-600 p-3 rounded-xl font-black uppercase">Generate Link</button>
+        <button onClick={generateLink} className="w-full bg-purple-600 p-3 rounded-xl font-black uppercase text-[12px]">Generate Link</button>
         {generatedLink && <div className="mt-4 p-3 bg-black rounded-xl border border-purple-900 text-[10px] break-all">{generatedLink}</div>}
       </div>
 
@@ -100,4 +106,5 @@ export default function Dashboard({ user }) {
       </div>
     </div>
   );
-  }
+        }
+          
