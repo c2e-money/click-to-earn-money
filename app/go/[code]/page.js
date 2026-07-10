@@ -21,11 +21,9 @@ export default function AdPage({ params }) {
 
   const handleContinue = async () => {
     if (step < 4) {
-      // Agla step naye tab mein khulega
       window.open(`/go/${params.code}?step=${step + 1}`, '_blank');
       window.close();
     } else {
-      // Final destination
       const q = query(collection(db, "urls"), where("shortCode", "==", params.code));
       const snap = await getDocs(q);
       if (!snap.empty) {
@@ -42,39 +40,41 @@ export default function AdPage({ params }) {
   };
 
   return (
-    <div className="bg-white min-h-screen text-black p-4 flex flex-col items-center">
-      <div className="font-black text-2xl mb-4">STEP {step} OF 4</div>
-
-      {/* Ad Unit 1: Top */}
-      <div className="my-4"><script src="https://rightyrely.com/67/f2/56/67f25683cd971ba173dadc88bb3b3a13.js"></script></div>
-
-      <div className="text-center font-bold text-red-600 my-6 italic">👇 SCROLL DOWN FOR ADS 👇</div>
-
-      {/* Ad Unit 2: Native Banner */}
-      <div id="container-b594fd33ac3477b8549752f47e5a4e56" className="my-10">
-        <script src="https://rightyrely.com/b594fd33ac3477b8549752f47e5a4e56/invoke.js"></script>
+    <div className="bg-white min-h-screen text-black font-sans">
+      {/* 1. Header Ad (Top) */}
+      <div className="text-center py-2 bg-gray-100">
+        <script src="https://rightyrely.com/67/f2/56/67f25683cd971ba173dadc88bb3b3a13.js"></script>
       </div>
 
-      <div className="h-48"></div> {/* Bada gap */}
+      <div className="p-4">
+        {/* Instruction Box (Yellow) */}
+        <div className="border-2 border-yellow-300 bg-yellow-50 p-4 rounded-xl text-center mb-6">
+          <p className="font-bold text-sm">👆👇 Click banner and wait {timer > 0 ? timer : 10}s to unlock link 👆👇</p>
+          <p className="text-xs mt-2 text-red-600 font-bold">CLICK BANNER WAIT & BACK</p>
+        </div>
 
-      {/* Ad Unit 3: Banner */}
-      <div className="my-10">
-        <script src="https://rightyrely.com/4f8b4de41cea03dc9d830849c3900efa/invoke.js"></script>
-      </div>
+        {/* 2. Main Ad Unit */}
+        <div id="container-b594fd33ac3477b8549752f47e5a4e56" className="flex justify-center my-8">
+          <script src="https://rightyrely.com/b594fd33ac3477b8549752f47e5a4e56/invoke.js"></script>
+        </div>
 
-      {/* Continue Button */}
-      <button 
-        onClick={handleContinue} 
-        disabled={!canContinue}
-        className={`w-full py-6 font-black text-xl rounded-xl shadow-2xl ${canContinue ? "bg-blue-600 text-white animate-pulse" : "bg-gray-300"}`}
-      >
-        {timer > 0 ? `WAIT ${timer}s` : "CLICK BANNER & CONTINUE"}
-      </button>
+        {/* Gap */}
+        <div className="h-64"></div>
 
-      {/* Ad Unit 4: Footer */}
-      <div className="mt-20">
-         <script src="https://rightyrely.com/6c/3d/5e/6c3d5e71fdaab0f2fcbd03525c305b33.js"></script>
+        {/* 3. Continue Button */}
+        <button 
+          onClick={handleContinue} 
+          disabled={!canContinue}
+          className={`w-full py-4 text-white font-bold text-lg rounded-lg ${canContinue ? "bg-blue-600" : "bg-gray-400"}`}
+        >
+          {timer > 0 ? `Please Wait ${timer}s` : "Continue"}
+        </button>
+
+        {/* 4. Footer Ad */}
+        <div className="mt-10">
+          <script src="https://rightyrely.com/4f8b4de41cea03dc9d830849c3900efa/invoke.js"></script>
+        </div>
       </div>
     </div>
   );
-        }
+}
