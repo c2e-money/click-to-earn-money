@@ -18,20 +18,17 @@ export default function Dashboard() {
   }, []);
 
   const handleGenerate = async () => {
-    if (!url) return alert("Please enter a URL!");
-    if (!user) return alert("Please login first!");
+    if (!url) return alert("URL daalo!");
+    if (!user) return alert("Login karo!");
 
-    // Simple unique alias generator
-    const shortAlias = alias || "c2e.com/" + Math.random().toString(36).substring(7);
+    const shortAlias = alias || Math.random().toString(36).substring(7);
     const newLink = { id: Date.now(), url, alias: shortAlias, clicks: 0 };
     
     try {
         await setDoc(doc(db, "users", user.uid), { links: arrayUnion(newLink) }, { merge: true });
         setGeneratedLink(shortAlias);
         setUrl(""); setAlias("");
-    } catch (e) { 
-        alert("Error: " + e.message); 
-    }
+    } catch (e) { alert("Error!"); }
   };
 
   return (
@@ -42,7 +39,7 @@ export default function Dashboard() {
       </header>
       
       <main className="flex-1 overflow-y-auto p-4 space-y-4 pb-24">
-        {/* Stats */}
+        {/* Stats Grid (Wahi original design) */}
         <div className="grid grid-cols-2 gap-3">
           <div className="bg-[#131722] p-4 rounded-2xl border border-[#1f2937]"><p className="text-[9px] font-bold text-gray-500 uppercase">Clicks</p><p className="text-lg font-black">0</p></div>
           <div className="bg-[#131722] p-4 rounded-2xl border border-[#1f2937]"><p className="text-[9px] font-bold text-gray-500 uppercase">Withdrawal</p><p className="text-lg font-black text-emerald-400">$0.00</p></div>
@@ -50,13 +47,13 @@ export default function Dashboard() {
           <div className="bg-[#131722] p-4 rounded-2xl border border-[#1f2937]"><p className="text-[9px] font-bold text-gray-500 uppercase">Earnings</p><p className="text-lg font-black text-purple-500">$0.00</p></div>
         </div>
 
-        {/* Generate Box */}
+        {/* Generate Box (Wahi original design) */}
         <div className="bg-[#131722] p-4 rounded-2xl border border-[#1f2937]">
           <input type="text" value={url} onChange={(e) => setUrl(e.target.value)} placeholder="Paste URL..." className="w-full bg-[#0b0e14] p-3 rounded-xl border border-[#1f2937] mb-3 text-sm outline-none" />
           <input type="text" value={alias} onChange={(e) => setAlias(e.target.value)} placeholder="Custom Alias (Optional)" className="w-full bg-[#0b0e14] p-3 rounded-xl border border-[#1f2937] mb-3 text-sm outline-none" />
           <button onClick={handleGenerate} className="w-full bg-purple-600 p-3 rounded-xl font-black text-xs uppercase">Generate Link</button>
           
-          {/* Copy Button Box */}
+          {/* Generated Link Display */}
           {generatedLink && (
             <div className="mt-4 flex items-center gap-2 bg-[#0b0e14] p-3 rounded-xl border border-purple-500">
                 <p className="text-xs text-purple-400 flex-1 truncate">{generatedLink}</p>
@@ -65,7 +62,7 @@ export default function Dashboard() {
           )}
         </div>
 
-        {/* Traffic */}
+        {/* Traffic Analysis (Wahi original design) */}
         <div className="bg-[#131722] p-4 rounded-2xl border border-[#1f2937]">
           <p className="text-[10px] font-black uppercase text-gray-500 mb-4">Traffic Analysis</p>
           <div className="h-32 flex items-end gap-2">
@@ -78,5 +75,5 @@ export default function Dashboard() {
       <Navbar active="home" />
     </div>
   );
-    }
-                                                                     
+  }
+          
