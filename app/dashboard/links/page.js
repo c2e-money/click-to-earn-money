@@ -19,12 +19,14 @@ export default function Links() {
         <h1 className="text-lg font-black italic uppercase tracking-wider">MY LINKS</h1>
         <div className="w-8 h-8 rounded-full bg-purple-600 flex items-center justify-center text-[10px] font-black">LG</div>
       </header>
+
       <main className="flex-1 overflow-y-auto p-4 space-y-4 pb-24">
         <div className="bg-[#131722] p-4 rounded-2xl border border-[#1f2937]">
           <h2 className="text-[9px] font-black uppercase mb-3 text-gray-400">Create New Link</h2>
           <input type="text" value={url} onChange={(e) => setUrl(e.target.value)} placeholder="Paste URL..." className="w-full bg-[#0b0e14] p-3 rounded-xl border border-[#1f2937] text-sm mb-3 outline-none" />
           <button onClick={handleGenerate} className="w-full bg-purple-600 p-3 rounded-xl font-black text-xs uppercase">Generate Link</button>
         </div>
+
         <div className="space-y-3">
           <p className="text-[10px] font-black uppercase text-gray-500">Recent Links</p>
           {links.map((link) => (
@@ -41,4 +43,5 @@ export default function Links() {
       <Navbar active="links" />
     </div>
   );
-}
+            }
+  
