@@ -8,7 +8,8 @@ import { onAuthStateChanged } from "firebase/auth";
 export default function Dashboard() {
   const [url, setUrl] = useState("");
   const [alias, setAlias] = useState("");
-  const [generatedLink, setGeneratedLink] = useState("");
+  const [generated, setGenerated] = useState(null);
+  const [loading, setLoading] = useState(false);
   const [user, setUser] = useState(null);
   const [stats, setStats] = useState({ clicks: 0, earnings: 0, cpm: 5.00, withdraw: 0 });
 
@@ -26,13 +27,20 @@ export default function Dashboard() {
   }, []);
 
   const handleGenerate = async () => {
-    if (!url || !user) return;
+    if (!url || !user) return alert("URL Missing!");
+    setLoading(true);
     const finalAlias = alias || Math.random().toString(36).substring(7);
     try {
-        await setDoc(doc(db, "urls", finalAlias), { code: finalAlias, originalUrl: url.startsWith('http') ? url : `https://${url}`, userId: user.uid, clicks: 0 });
-        setGeneratedLink(`https://click-to-earn-money.vercel.app/${finalAlias}`);
+        await setDoc(doc(db, "urls", finalAlias), { 
+            code: finalAlias, 
+            originalUrl: url.startsWith('http') ? url : `https://${url}`, 
+            userId: user.uid, 
+            clicks: 0 
+        });
+        setGenerated(`https://click-to-earn-money.vercel.app/${finalAlias}`);
         setUrl(""); setAlias("");
     } catch (e) { alert("Error!"); }
+    setLoading(false);
   };
 
   return (
@@ -55,8 +63,15 @@ export default function Dashboard() {
         <div className="bg-[#131722] p-4 rounded-2xl border border-[#1f2937]">
           <input type="text" value={url} onChange={(e) => setUrl(e.target.value)} placeholder="Paste URL..." className="w-full bg-[#0b0e14] p-3 rounded-xl border border-[#1f2937] mb-3 text-sm text-white placeholder-gray-500" />
           <input type="text" value={alias} onChange={(e) => setAlias(e.target.value)} placeholder="Custom Alias (Optional)" className="w-full bg-[#0b0e14] p-3 rounded-xl border border-[#1f2937] mb-3 text-sm text-white placeholder-gray-500" />
-          <button onClick={handleGenerate} className="w-full bg-purple-600 p-3 rounded-xl font-black text-xs uppercase">Generate Link</button>
-          {generatedLink && <div className="mt-4 p-3 rounded-xl border border-purple-500 bg-[#0b0e14] text-[10px] text-purple-400 break-all">{generatedLink}</div>}
+          <button onClick={handleGenerate} disabled={loading} className="w-full bg-purple-600 p-3 rounded-xl font-black text-xs uppercase">
+            {loading ? "Generating..." : "Generate Link"}
+          </button>
+          {generated && !loading && (
+            <div className="mt-4 p-3 bg-purple-900/20 border border-purple-500 rounded-xl text-[10px] text-purple-400 break-all flex justify-between items-center">
+              {generated}
+              <button onClick={() => navigator.clipboard.writeText(generated)} className="ml-2 bg-purple-600 px-3 py-1 rounded-lg text-white font-black uppercase">COPY</button>
+            </div>
+          )}
         </div>
 
         {/* Traffic Graph */}
@@ -68,4 +83,4 @@ export default function Dashboard() {
       <Navbar active="home" />
     </div>
   );
-}
+                                                                                                                                                               }
