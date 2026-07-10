@@ -38,7 +38,7 @@ export default function Dashboard() {
   return (
     <div className="flex flex-col h-screen bg-[#0b0e14] text-white">
       <header className="p-4 border-b border-[#1f2937] flex justify-between items-center">
-        <h1 className="text-lg font-black italic uppercase">LG DASHBOARD</h1>
+        <h1 className="text-lg font-black italic uppercase">C2E DASHBOARD</h1>
         <div className="w-8 h-8 rounded-full bg-purple-600 flex items-center justify-center text-[10px] font-black">LG</div>
       </header>
 
