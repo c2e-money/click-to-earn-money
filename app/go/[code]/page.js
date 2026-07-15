@@ -1,30 +1,81 @@
 "use client";
-import { useEffect } from "react";
+import { useEffect, useState } from "react";
+import Script from "next/script";
+import { db } from "@/lib/firebase";
+import { doc, getDoc, updateDoc, increment } from "firebase/firestore";
 
-export default function AdPage() {
-  
-  // Adsterra Native Banner Loading Logic
+export default function AdPage({ params }) {
+  const [targetUrl, setTargetUrl] = useState(null);
+  const [loading, setLoading] = useState(true);
+
   useEffect(() => {
-    if (!document.querySelector('script[src*="invoke.js"]')) {
-      const script = document.createElement("script");
-      script.src = "https://rightyrely.com/b594fd33ac3477b8549752f47e5a4e56/invoke.js"; // Apne Adsterra script se replace karo
-      script.async = true;
-      document.body.appendChild(script);
-    }
-  }, []);
+    const processClick = async () => {
+      // Unwrap params for Next.js 14/15
+      const code = params.code;
+      
+      try {
+        const urlRef = doc(db, "urls", code);
+        const urlSnap = await getDoc(urlRef);
+
+        if (urlSnap.exists()) {
+          const data = urlSnap.data();
+          setTargetUrl(data.originalUrl);
+
+          // Update Link Clicks
+          await updateDoc(urlRef, { clicks: increment(1) });
+
+          // Update User Earnings (CPM based)
+          const settingsSnap = await getDoc(doc(db, "settings", "global"));
+          const cpm = settingsSnap.exists() ? settingsSnap.data().cpm : 5.00;
+          
+          if (data.userId) {
+              await updateDoc(doc(db, "users", data.userId), { 
+                  walletBalance: increment(cpm / 1000),
+                  earnings: increment(cpm / 1000),
+                  clicks: increment(1)
+              });
+          }
+        }
+      } catch (e) {
+        console.error("Firebase Error:", e);
+      }
+      setLoading(false);
+    };
+
+    processClick();
+  }, [params.code]);
+
+  if (loading) {
+    return <div className="min-h-screen bg-[#0b0e14] flex items-center justify-center text-white font-bold">Loading...</div>;
+  }
+
+  if (!targetUrl) {
+    return <div className="min-h-screen bg-[#0b0e14] flex items-center justify-center text-white font-bold">Invalid Link or Removed</div>;
+  }
 
   return (
-    <div>
-      {/* 1. Popunder/Social Bar (Anti-Adblock bypass) */}
-      <script src="https://rightyrely.com/6c/3d/5e/6c3d5e71fdaab0f2fcbd03525c305b33.js"></script>
+    <div className="min-h-screen bg-[#0b0e14] flex flex-col items-center justify-center p-4">
+      {/* 1. Popunder / Social Bar Script */}
+      <Script src="https://rightyrely.com/6c/3d/5e/6c3d5e71fdaab0f2fcbd03525c305b33.js" strategy="lazyOnload" />
 
-      {/* 2. Banner/Native Unit */}
-      <div id="container-b594fd33ac3477b8549752f47e5a4e56"></div>
+      {/* 2. Adsterra Native Banner Script */}
+      <Script src="https://rightyrely.com/b594fd33ac3477b8549752f47e5a4e56/invoke.js" strategy="lazyOnload" />
+      
+      <div className="bg-[#131722] p-8 rounded-3xl border border-[#1f2937] text-center w-full max-w-md shadow-2xl">
+        <h2 className="text-white text-xl font-black mb-6 uppercase">Verify To Continue</h2>
+        
+        {/* Banner Container */}
+        <div id="container-b594fd33ac3477b8549752f47e5a4e56" className="w-full min-h-[100px] mb-6 flex justify-center items-center bg-[#0b0e14] rounded-xl overflow-hidden border border-[#1f2937]">
+           <span className="text-xs text-gray-600">Ad Loading...</span>
+        </div>
 
-      {/* 3. Smart Link (Continue Button par lagao) */}
-      <button onClick={() => window.open("https://adsterra-smart-link-url", "_blank")}>
-        CONTINUE
-      </button>
+        <button 
+          onClick={() => window.open(targetUrl, "_self")}
+          className="w-full bg-gradient-to-r from-emerald-500 to-green-600 py-4 rounded-xl font-black text-white shadow-lg active:scale-95 transition-transform uppercase"
+        >
+          CONTINUE TO LINK
+        </button>
+      </div>
     </div>
   );
-}
+    }
