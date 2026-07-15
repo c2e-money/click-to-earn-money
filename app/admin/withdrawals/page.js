@@ -19,11 +19,13 @@ export default function Dashboard() {
   const [todayIndex, setTodayIndex] = useState(0);
   const weekLabels = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
+  // Weekday logic
   useEffect(() => {
     const day = new Date().getDay();
     setTodayIndex(day === 0 ? 6 : day - 1);
   }, []);
 
+  // Auth check
   useEffect(() => {
     const unsubAuth = onAuthStateChanged(auth, (u) => {
       if (u) { setUser(u); } else { router.push("/login"); }
@@ -31,10 +33,10 @@ export default function Dashboard() {
     return () => unsubAuth();
   }, [router]);
 
+  // Data Fetching + Ban Logic
   useEffect(() => {
     if (!user?.uid) return;
     
-    // Naya Ban logic + Purana Data Fetch logic
     const unsubUser = onSnapshot(doc(db, "users", user.uid), (docSnap) => {
       if (docSnap.exists()) {
         const userData = docSnap.data();
@@ -49,10 +51,12 @@ export default function Dashboard() {
     
     // Global CPM Fetch
     const fetchSettings = async () => {
-        const settingsSnap = await getDoc(doc(db, "settings", "global"));
-        if (settingsSnap.exists()) {
-            setData(prev => ({ ...prev, cpm: settingsSnap.data().cpm }));
-        }
+        try {
+            const settingsSnap = await getDoc(doc(db, "settings", "global"));
+            if (settingsSnap.exists()) {
+                setData(prev => ({ ...prev, cpm: settingsSnap.data().cpm }));
+            }
+        } catch (e) { console.error("Error fetching settings:", e); }
     };
     fetchSettings();
     
@@ -82,7 +86,6 @@ export default function Dashboard() {
       
       <header className="p-4 border-b border-[#1f2937] flex justify-between items-center">
         <h1 className="font-black text-lg italic text-purple-500">C2E DASHBOARD</h1>
-        <div className="w-8 h-8 rounded-full bg-purple-600 flex items-center justify-center font-black text-[10px]">C2E</div>
       </header>
 
       <main className="p-4">
@@ -128,4 +131,3 @@ export default function Dashboard() {
     </div>
   );
           }
-          
