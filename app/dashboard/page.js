@@ -11,6 +11,7 @@ export default function Dashboard() {
   const [url, setUrl] = useState("");
   const [alias, setAlias] = useState("");
   const [generatedLink, setGeneratedLink] = useState(null);
+  const [isGenerating, setIsGenerating] = useState(false); // NAYA LOADING STATE
 
   // Authentication Check
   useEffect(() => {
@@ -36,10 +37,13 @@ export default function Dashboard() {
     return () => unsubUser();
   }, [user]);
 
-  // Generating Short Link
+  // Generating Short Link with Loading Animation
   const generateLink = async () => {
     if (!user?.uid) return alert("Login required!");
     if (!url) return alert("Enter URL");
+    
+    setIsGenerating(true); // LOADING START
+    
     try {
       const code = alias || Math.random().toString(36).substring(7);
       
@@ -55,7 +59,11 @@ export default function Dashboard() {
       setGeneratedLink(`${window.location.origin}/go/${code}`);
       setUrl(""); 
       setAlias("");
-    } catch (e) { alert(e.message); }
+    } catch (e) { 
+      alert(e.message); 
+    } finally {
+      setIsGenerating(false); // LOADING STOP (chahe success ho ya error)
+    }
   };
 
   return (
@@ -101,11 +109,24 @@ export default function Dashboard() {
             value={alias} 
             onChange={(e) => setAlias(e.target.value)} 
           />
+          
+          {/* UPDATED BUTTON WITH LOADING STATE */}
           <button 
             onClick={generateLink} 
-            className="w-full bg-gradient-to-r from-purple-600 to-indigo-600 py-3 rounded-xl font-black uppercase text-[11px] active:scale-95 transition-transform"
+            disabled={isGenerating}
+            className={`w-full bg-gradient-to-r from-purple-600 to-indigo-600 py-3 rounded-xl font-black uppercase text-[11px] flex justify-center items-center gap-2 transition-all ${isGenerating ? 'opacity-70 cursor-not-allowed' : 'active:scale-95'}`}
           >
-            Generate Link
+            {isGenerating ? (
+              <>
+                <svg className="animate-spin h-4 w-4 text-white" xmlns="http://www.w3.org/2000/svg" fill="none" viewBox="0 0 24 24">
+                  <circle className="opacity-25" cx="12" cy="12" r="10" stroke="currentColor" strokeWidth="4"></circle>
+                  <path className="opacity-75" fill="currentColor" d="M4 12a8 8 0 018-8V0C5.373 0 0 5.373 0 12h4zm2 5.291A7.962 7.962 0 014 12H0c0 3.042 1.135 5.824 3 7.938l3-2.647z"></path>
+                </svg>
+                Generating...
+              </>
+            ) : (
+              "Generate Link"
+            )}
           </button>
           
           {generatedLink && (
@@ -143,7 +164,6 @@ export default function Dashboard() {
               
               {/* CSS Up-Down Bar Graph */}
               <div className="flex items-end justify-between h-24 gap-1.5 mt-4 border-b border-[#1f2937] pb-1">
-                {/* Array of bar heights. The last one relies on real Firebase click data */}
                 {[30, 60, 45, 85, 50, 75, Math.min(Math.max(data.clicks, 15), 100)].map((height, index) => (
                   <div key={index} className="w-full flex flex-col justify-end items-center h-full group">
                     <div
@@ -179,5 +199,5 @@ export default function Dashboard() {
       <Navbar active="home" />
     </div>
   );
-          }
-            
+              }
+                  
