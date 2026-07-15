@@ -34,7 +34,6 @@ export default function Dashboard() {
   useEffect(() => {
     if (!user?.uid) return;
     
-    // 1. User ka data aur Ban logic
     const unsubUser = onSnapshot(doc(db, "users", user.uid), (docSnap) => {
       if (docSnap.exists()) {
         const userData = docSnap.data();
@@ -47,7 +46,6 @@ export default function Dashboard() {
       }
     });
     
-    // 2. Global CPM Fetch
     const fetchSettings = async () => {
         try {
             const settingsSnap = await getDoc(doc(db, "settings", "global"));
@@ -75,8 +73,6 @@ export default function Dashboard() {
     } catch (e) { alert(e.message); } 
     finally { setIsGenerating(false); }
   };
-
-  const todayClicks = data.dailyClicks ? (data.dailyClicks[weekLabels[todayIndex]] || 0) : 0;
 
   return (
     <div className="bg-[#050608] text-white min-h-screen pb-24 font-sans">
@@ -107,7 +103,6 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Generate Link */}
         <div className="bg-[#0b0e14] p-5 rounded-3xl border border-[#1f2937]">
           <input className="w-full bg-[#050608] p-3 rounded-xl mb-3 border border-[#1f2937] text-xs outline-none" placeholder="Paste URL..." value={url} onChange={(e) => setUrl(e.target.value)} />
           <button onClick={generateLink} disabled={isGenerating} className="w-full bg-purple-600 py-3 rounded-xl font-black uppercase text-[11px] active:scale-95 transition-transform">
@@ -115,7 +110,7 @@ export default function Dashboard() {
           </button>
         </div>
 
-        {/* WEEKLY TRAFFIC CHART */}
+        {/* Weekly Traffic */}
         <div className="bg-[#0b0e14] p-5 rounded-3xl border border-[#1f2937] mt-6">
           <h2 className="text-[10px] font-black uppercase mb-4 text-gray-500">Weekly Traffic Analysis</h2>
           <div className="flex items-end justify-between h-24 gap-1.5">
@@ -134,5 +129,4 @@ export default function Dashboard() {
       <Navbar active="home" />
     </div>
   );
-                                                 }
-              
+  }
