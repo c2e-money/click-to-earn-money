@@ -10,7 +10,6 @@ export default function AdPage({ params }) {
 
   useEffect(() => {
     const processClick = async () => {
-      // Unwrap params for Next.js 14/15
       const code = params.code;
       
       try {
@@ -21,18 +20,19 @@ export default function AdPage({ params }) {
           const data = urlSnap.data();
           setTargetUrl(data.originalUrl);
 
-          // Update Link Clicks
           await updateDoc(urlRef, { clicks: increment(1) });
 
-          // Update User Earnings (CPM based)
           const settingsSnap = await getDoc(doc(db, "settings", "global"));
           const cpm = settingsSnap.exists() ? settingsSnap.data().cpm : 5.00;
           
           if (data.userId) {
+              const todayStr = new Date().toLocaleDateString('en-US', { weekday: 'short' }); 
+              
               await updateDoc(doc(db, "users", data.userId), { 
                   walletBalance: increment(cpm / 1000),
                   earnings: increment(cpm / 1000),
-                  clicks: increment(1)
+                  clicks: increment(1),
+                  [`dailyClicks.${todayStr}`]: increment(1) 
               });
           }
         }
@@ -55,16 +55,12 @@ export default function AdPage({ params }) {
 
   return (
     <div className="min-h-screen bg-[#0b0e14] flex flex-col items-center justify-center p-4">
-      {/* 1. Popunder / Social Bar Script */}
       <Script src="https://rightyrely.com/6c/3d/5e/6c3d5e71fdaab0f2fcbd03525c305b33.js" strategy="lazyOnload" />
-
-      {/* 2. Adsterra Native Banner Script */}
       <Script src="https://rightyrely.com/b594fd33ac3477b8549752f47e5a4e56/invoke.js" strategy="lazyOnload" />
       
       <div className="bg-[#131722] p-8 rounded-3xl border border-[#1f2937] text-center w-full max-w-md shadow-2xl">
         <h2 className="text-white text-xl font-black mb-6 uppercase">Verify To Continue</h2>
         
-        {/* Banner Container */}
         <div id="container-b594fd33ac3477b8549752f47e5a4e56" className="w-full min-h-[100px] mb-6 flex justify-center items-center bg-[#0b0e14] rounded-xl overflow-hidden border border-[#1f2937]">
            <span className="text-xs text-gray-600">Ad Loading...</span>
         </div>
@@ -78,4 +74,4 @@ export default function AdPage({ params }) {
       </div>
     </div>
   );
-    }
+}
