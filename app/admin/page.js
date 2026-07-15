@@ -2,40 +2,22 @@
 import { useState, useEffect } from "react";
 import { db } from "@/lib/firebase";
 import { collection, onSnapshot, doc, updateDoc, setDoc, getDoc } from "firebase/firestore";
+import { useRouter } from "next/navigation";
 
 export default function AdminPage() {
   const [users, setUsers] = useState([]);
-  const [withdrawals, setWithdrawals] = useState([]); // Separate list for withdrawals
   const [globalCpm, setGlobalCpm] = useState(5.00);
   const [isAdmin, setIsAdmin] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
   const [editVal, setEditVal] = useState({});
+  const router = useRouter();
 
   useEffect(() => {
     if (!isAdmin) return;
-
-    // Fetch Global CPM
     getDoc(doc(db, "settings", "global")).then(s => s.exists() && setGlobalCpm(s.data().cpm));
-
-    // Live Users & Centralized Withdrawals Listener
     const unsub = onSnapshot(collection(db, "users"), (snapshot) => {
-      let allUsers = [];
-      let allW = [];
-      
-      snapshot.docs.forEach(uDoc => {
-        const uData = uDoc.data();
-        allUsers.push({ id: uDoc.id, ...uData });
-        
-        // Add to global withdrawal list
-        if (uData.withdrawals) {
-          uData.withdrawals.forEach((w, i) => {
-            allW.push({ ...w, uid: uDoc.id, index: i, userEmail: uData.email });
-          });
-        }
-      });
-      setUsers(allUsers);
-      setWithdrawals(allW.sort((a, b) => new Date(b.date) - new Date(a.date)));
+      setUsers(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
     });
     return () => unsub();
   }, [isAdmin]);
@@ -43,20 +25,6 @@ export default function AdminPage() {
   const updateUserData = async (uid, field, value) => {
     await updateDoc(doc(db, "users", uid), { [field]: value });
     alert("Updated!");
-  };
-
-  const updateWithdrawalStatus = async (uid, index, amount, newStatus, currentStatus) => {
-    const userRef = doc(db, "users", uid);
-    const snap = await getDoc(userRef);
-    let withdrawals = snap.data().withdrawals;
-    
-    // Refund logic: Agar Reject hua toh paisa wapas add karo
-    if (currentStatus === 'Pending' && newStatus === 'Rejected') {
-        await updateDoc(userRef, { walletBalance: (snap.data().walletBalance || 0) + parseFloat(amount) });
-    }
-
-    withdrawals[index].status = newStatus;
-    await updateDoc(userRef, { withdrawals: withdrawals });
   };
 
   if (!isAdmin) {
@@ -85,32 +53,9 @@ export default function AdminPage() {
           </div>
       </div>
 
-      {/* 2. Centralized Withdrawal Center */}
-      <h2 className="text-xs font-black text-white mb-3 uppercase">Withdrawal Center</h2>
-      <div className="space-y-3 mb-8">
-        {withdrawals.map((w, i) => (
-          <div key={i} className="bg-[#0b0e14] p-3 rounded-xl border border-[#1f2937]">
-            <div className="flex justify-between text-[9px] font-bold text-gray-400">
-               <span>{w.userEmail}</span>
-               <span className={`px-2 py-0.5 rounded ${w.status === 'Paid' ? 'bg-emerald-900 text-emerald-400' : 'bg-yellow-900 text-yellow-400'}`}>{w.status}</span>
-            </div>
-            <p className="text-sm font-black">${w.amount} <span className="text-[9px] font-normal text-gray-500">ID: {w.id}</span></p>
-            <div className="text-[9px] text-gray-300 font-mono mt-1 bg-[#1f2937] p-2 rounded">
-                <p className="text-purple-400 font-bold mb-1">{w.method}</p>
-                {w.details && Object.entries(w.details).map(([k, v]) => <p key={k} className="capitalize">{k}: {v}</p>)}
-            </div>
-            {w.status === 'Pending' && (
-                <div className="flex gap-2 mt-2">
-                  <button onClick={() => updateWithdrawalStatus(w.uid, w.index, w.amount, 'Paid', w.status)} className="bg-emerald-700 flex-1 py-1 rounded text-[9px] font-black">APPROVE</button>
-                  <button onClick={() => updateWithdrawalStatus(w.uid, w.index, w.amount, 'Rejected', w.status)} className="bg-red-700 flex-1 py-1 rounded text-[9px] font-black">REJECT</button>
-                </div>
-            )}
-          </div>
-        ))}
-      </div>
+      <button onClick={() => router.push('/admin/withdrawals')} className="w-full bg-blue-900 py-4 rounded-xl font-black text-xs uppercase mb-6">View Withdrawal Center</button>
 
-      {/* 3. User Management List */}
-      <h2 className="text-xs font-black text-white mb-3 uppercase">User Management</h2>
+      {/* 2. User List */}
       {users.map(u => (
         <div key={u.id} className="bg-[#0b0e14] p-4 rounded-xl mb-4 border border-[#1f2937]">
           <div className="flex justify-between items-center mb-2">
@@ -128,4 +73,4 @@ export default function AdminPage() {
     </div>
   );
       }
-  
+      
