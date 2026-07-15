@@ -21,6 +21,7 @@ export default function Dashboard() {
 
   useEffect(() => {
     const day = new Date().getDay();
+    // Monday(1) -> 0, Sunday(0) -> 6
     setTodayIndex(day === 0 ? 6 : day - 1);
   }, []);
 
@@ -34,7 +35,7 @@ export default function Dashboard() {
   useEffect(() => {
     if (!user?.uid) return;
     
-    // Real-time listener for all dashboard data
+    // Live User Data Sync
     const unsubUser = onSnapshot(doc(db, "users", user.uid), (docSnap) => {
       if (docSnap.exists()) {
         const userData = docSnap.data();
@@ -49,10 +50,12 @@ export default function Dashboard() {
     
     // Fetch Global CPM
     const fetchSettings = async () => {
-        const settingsSnap = await getDoc(doc(db, "settings", "global"));
-        if (settingsSnap.exists()) {
-            setData(prev => ({ ...prev, cpm: settingsSnap.data().cpm }));
-        }
+        try {
+            const settingsSnap = await getDoc(doc(db, "settings", "global"));
+            if (settingsSnap.exists()) {
+                setData(prev => ({ ...prev, cpm: settingsSnap.data().cpm }));
+            }
+        } catch (e) { console.error(e); }
     };
     fetchSettings();
     
@@ -103,7 +106,7 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Generate Link with Alias */}
+        {/* Generate Link Input */}
         <div className="bg-[#0b0e14] p-5 rounded-3xl border border-[#1f2937]">
           <input className="w-full bg-[#050608] p-3 rounded-xl mb-3 border border-[#1f2937] text-xs outline-none" placeholder="Paste URL..." value={url} onChange={(e) => setUrl(e.target.value)} />
           <input className="w-full bg-[#050608] p-3 rounded-xl mb-4 border border-[#1f2937] text-xs outline-none" placeholder="Custom Alias (Optional)" value={alias} onChange={(e) => setAlias(e.target.value)} />
@@ -117,17 +120,28 @@ export default function Dashboard() {
           )}
         </div>
 
-        {/* Weekly Traffic Analysis */}
+        {/* Weekly Traffic Analysis with Today's Count */}
         <div className="bg-[#0b0e14] p-5 rounded-3xl border border-[#1f2937] mt-6">
-          <h2 className="text-[10px] font-black uppercase mb-4 text-gray-500">Weekly Traffic Analysis</h2>
-          <div className="flex items-end justify-between h-24 gap-1.5">
+          <div className="flex justify-between items-end mb-4">
+            <div>
+              <h2 className="text-[10px] font-black uppercase text-gray-500">Weekly Traffic Analysis</h2>
+              <p className="text-2xl font-black text-emerald-400 mt-1">
+                {data.dailyClicks ? (data.dailyClicks[weekLabels[todayIndex]] || 0) : 0}
+              </p>
+              <p className="text-[9px] font-bold text-gray-500 uppercase">Today's Clicks</p>
+            </div>
+          </div>
+          <div className="flex items-end justify-between h-24 gap-1.5 mt-4">
             {weekLabels.map((day, i) => (
               <div key={i} className="w-full flex flex-col justify-end items-center h-full">
                 <div 
                   className={`w-full rounded-t ${i === todayIndex ? "bg-emerald-500" : "bg-purple-900"}`} 
-                  style={{ height: `${Math.min((data.dailyClicks?.[day] || 0) * 10, 100)}%` }}>
-                </div>
-                <span className="text-[8px] text-gray-600 mt-1">{day}</span>
+                  style={{ 
+                    height: `${Math.min((data.dailyClicks?.[day] || 0) * 10, 100)}%`,
+                    minHeight: (data.dailyClicks?.[day] || 0) > 0 ? '4px' : '0px'
+                  }}
+                ></div>
+                <span className="text-[8px] text-gray-600 mt-1 uppercase">{day}</span>
               </div>
             ))}
           </div>
@@ -136,4 +150,5 @@ export default function Dashboard() {
       <Navbar active="home" />
     </div>
   );
-                                                                                                                                                    }
+  }
+                             
