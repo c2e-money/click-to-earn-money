@@ -37,10 +37,10 @@ export default function Withdraw() {
     setLoading(true);
     try {
       const userRef = doc(db, "users", user.uid);
-      // NAYA LOGIC: Wallet se minus, Total mein Plus
+      
+      // LOGIC: Sirf walletBalance se paisa katega. Total earnings safe hain!
       await updateDoc(userRef, {
-        walletBalance: increment(-wAmount),
-        totalWithdrawn: increment(wAmount),
+        walletBalance: increment(-wAmount), 
         withdrawals: arrayUnion({
           amount: wAmount.toFixed(2),
           status: 'Pending',
@@ -49,7 +49,7 @@ export default function Withdraw() {
       });
       alert(`Successfully requested $${wAmount.toFixed(2)}`);
       setAmount("");
-      fetchData(user.uid); // Refresh data
+      fetchData(user.uid); 
     } catch (error) {
       alert("Error: " + error.message);
     }
@@ -61,7 +61,6 @@ export default function Withdraw() {
       <header className="p-4 border-b border-[#1f2937] font-black uppercase text-purple-500">Withdraw Funds</header>
       
       <main className="flex-1 overflow-y-auto p-4 space-y-6 pb-24">
-        {/* Request Form */}
         <div className="bg-[#131722] p-5 rounded-3xl border border-[#1f2937]">
           <p className="text-[10px] uppercase font-bold text-gray-500 mb-1">Available Balance</p>
           <h2 className="text-3xl font-black text-emerald-400 mb-4">${(data.walletBalance || 0).toFixed(2)}</h2>
@@ -82,7 +81,6 @@ export default function Withdraw() {
           </button>
         </div>
 
-        {/* History */}
         <div>
           <h3 className="text-[10px] font-black uppercase text-gray-500 mb-3">Recent Transactions</h3>
           <div className="space-y-3">
@@ -108,4 +106,4 @@ export default function Withdraw() {
       <Navbar active="withdraw" />
     </div>
   );
-              }
+            }
