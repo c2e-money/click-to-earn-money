@@ -10,7 +10,9 @@ export default function AdminPage() {
   const [password, setPassword] = useState("");
   const [isAdmin, setIsAdmin] = useState(false);
 
-  useEffect(() => { if (isAdmin) fetchData(); }, [isAdmin]);
+  useEffect(() => { 
+      if (isAdmin) fetchData(); 
+  }, [isAdmin]);
 
   const fetchData = async () => {
     const settingsSnap = await getDoc(doc(db, "settings", "global"));
@@ -20,7 +22,8 @@ export default function AdminPage() {
   };
 
   const handleLogin = () => {
-    if (email === process.env.NEXT_PUBLIC_ADMIN_EMAIL && password === process.env.NEXT_PUBLIC_ADMIN_PASS) {
+    // Basic Frontend Auth
+    if (email === "admin@c2e.com" && password === "admin123") {
       setIsAdmin(true);
     } else {
       alert("Unauthorized!");
@@ -55,6 +58,7 @@ export default function AdminPage() {
   return (
     <div className="bg-[#050608] text-white min-h-screen p-4 pb-20">
       <h1 className="text-xl font-black uppercase italic mb-6 text-purple-500 text-center">LG CONTROL PANEL</h1>
+      
       <div className="bg-[#0b0e14] p-5 rounded-3xl border border-[#1f2937] mb-6">
         <p className="text-[9px] font-black text-gray-500 uppercase mb-2">Global CPM ($)</p>
         <div className="flex gap-2">
@@ -62,6 +66,7 @@ export default function AdminPage() {
             <button onClick={updateGlobalCpm} className="bg-purple-600 px-6 rounded-xl font-black uppercase text-[10px]">Update</button>
         </div>
       </div>
+
       <div className="space-y-4">
         {users.map(u => (
           <div key={u.id} className="bg-[#0b0e14] p-5 rounded-3xl border border-[#1f2937]">
@@ -70,13 +75,13 @@ export default function AdminPage() {
                 <p className="text-[11px] font-black text-emerald-400">$ {u.walletBalance?.toFixed(2) || "0.00"}</p>
             </div>
             <div className="flex gap-2">
-                <button onClick={() => updateBalance(u.id, 1, 'add')} className="flex-1 bg-blue-600 py-3 rounded-xl font-black text-[10px] uppercase">+</button>
-                <button onClick={() => updateBalance(u.id, 1, 'sub')} className="flex-1 bg-red-600 py-3 rounded-xl font-black text-[10px] uppercase">-</button>
+                <button onClick={() => updateBalance(u.id, 1, 'add')} className="flex-1 bg-blue-600 py-3 rounded-xl font-black text-[10px] uppercase">+ $1</button>
+                <button onClick={() => updateBalance(u.id, 1, 'sub')} className="flex-1 bg-red-600 py-3 rounded-xl font-black text-[10px] uppercase">- $1</button>
             </div>
           </div>
         ))}
       </div>
     </div>
   );
-  }
+    }
     
