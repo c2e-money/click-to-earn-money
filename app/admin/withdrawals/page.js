@@ -19,13 +19,11 @@ export default function Dashboard() {
   const [todayIndex, setTodayIndex] = useState(0);
   const weekLabels = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
-  // Weekday logic
   useEffect(() => {
     const day = new Date().getDay();
     setTodayIndex(day === 0 ? 6 : day - 1);
   }, []);
 
-  // Auth check
   useEffect(() => {
     const unsubAuth = onAuthStateChanged(auth, (u) => {
       if (u) { setUser(u); } else { router.push("/login"); }
@@ -33,10 +31,10 @@ export default function Dashboard() {
     return () => unsubAuth();
   }, [router]);
 
-  // Data Fetching + Ban Logic
   useEffect(() => {
     if (!user?.uid) return;
     
+    // 1. User ka data aur Ban logic
     const unsubUser = onSnapshot(doc(db, "users", user.uid), (docSnap) => {
       if (docSnap.exists()) {
         const userData = docSnap.data();
@@ -49,14 +47,14 @@ export default function Dashboard() {
       }
     });
     
-    // Global CPM Fetch
+    // 2. Global CPM Fetch
     const fetchSettings = async () => {
         try {
             const settingsSnap = await getDoc(doc(db, "settings", "global"));
             if (settingsSnap.exists()) {
                 setData(prev => ({ ...prev, cpm: settingsSnap.data().cpm }));
             }
-        } catch (e) { console.error("Error fetching settings:", e); }
+        } catch (e) { console.error(e); }
     };
     fetchSettings();
     
@@ -89,37 +87,43 @@ export default function Dashboard() {
       </header>
 
       <main className="p-4">
-        {/* Stats Grid */}
+        {/* 4 CARDS LAYOUT */}
         <div className="grid grid-cols-2 gap-3 mb-6">
           <div className="bg-[#0b0e14] p-4 rounded-2xl border border-[#1f2937]">
-            <p className="text-[8px] uppercase font-black text-gray-500">Clicks</p>
+            <p className="text-[8px] uppercase font-black text-gray-500">Total Clicks</p>
             <h2 className="text-lg font-black">{data.clicks || 0}</h2>
           </div>
           <div className="bg-[#0b0e14] p-4 rounded-2xl border border-[#1f2937]">
             <p className="text-[8px] uppercase font-black text-emerald-500">Wallet</p>
             <h2 className="text-lg font-black text-emerald-400">${(data.walletBalance || 0).toFixed(2)}</h2>
           </div>
+          <div className="bg-[#0b0e14] p-4 rounded-2xl border border-[#1f2937]">
+            <p className="text-[8px] uppercase font-black text-gray-500">Global CPM</p>
+            <h2 className="text-lg font-black">${(data.cpm || 0).toFixed(2)}</h2>
+          </div>
+          <div className="bg-[#0b0e14] p-4 rounded-2xl border border-[#1f2937]">
+            <p className="text-[8px] uppercase font-black text-gray-500">Total Earnings</p>
+            <h2 className="text-lg font-black italic">${(data.earnings || 0).toFixed(2)}</h2>
+          </div>
         </div>
 
         {/* Generate Link */}
         <div className="bg-[#0b0e14] p-5 rounded-3xl border border-[#1f2937]">
           <input className="w-full bg-[#050608] p-3 rounded-xl mb-3 border border-[#1f2937] text-xs outline-none" placeholder="Paste URL..." value={url} onChange={(e) => setUrl(e.target.value)} />
-          <input className="w-full bg-[#050608] p-3 rounded-xl mb-4 border border-[#1f2937] text-xs outline-none" placeholder="Alias (Optional)" value={alias} onChange={(e) => setAlias(e.target.value)} />
           <button onClick={generateLink} disabled={isGenerating} className="w-full bg-purple-600 py-3 rounded-xl font-black uppercase text-[11px] active:scale-95 transition-transform">
-            {isGenerating ? "Generating..." : "Generate"}
+            {isGenerating ? "Generating..." : "Generate Link"}
           </button>
-          {generatedLink && <p className="mt-4 text-[10px] text-purple-400 truncate bg-[#050608] p-2 rounded">{generatedLink}</p>}
         </div>
 
-        {/* Traffic Chart */}
+        {/* WEEKLY TRAFFIC CHART */}
         <div className="bg-[#0b0e14] p-5 rounded-3xl border border-[#1f2937] mt-6">
-          <h2 className="text-[10px] font-black uppercase mb-4 text-gray-500">Traffic Analysis</h2>
+          <h2 className="text-[10px] font-black uppercase mb-4 text-gray-500">Weekly Traffic Analysis</h2>
           <div className="flex items-end justify-between h-24 gap-1.5">
             {weekLabels.map((day, i) => (
               <div key={i} className="w-full flex flex-col justify-end items-center h-full">
                 <div 
                   className={`w-full rounded-t ${i === todayIndex ? "bg-emerald-500" : "bg-purple-900"}`} 
-                  style={{ height: `${Math.min((data.dailyClicks?.[day] || 0) * 10, 100)}%`, minHeight: data.dailyClicks?.[day] > 0 ? '4px' : '0px' }}>
+                  style={{ height: `${Math.min((data.dailyClicks?.[day] || 0) * 10, 100)}%` }}>
                 </div>
                 <span className="text-[8px] text-gray-600 mt-1">{day}</span>
               </div>
@@ -130,4 +134,5 @@ export default function Dashboard() {
       <Navbar active="home" />
     </div>
   );
-          }
+                                                 }
+              
