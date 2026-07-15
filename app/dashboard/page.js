@@ -4,6 +4,7 @@ import { db, auth } from "@/lib/firebase";
 import { doc, onSnapshot, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { useRouter } from "next/navigation";
+import Script from "next/script";
 import Navbar from "@/app/components/Navbar";
 
 export default function Dashboard() {
@@ -14,7 +15,7 @@ export default function Dashboard() {
   const [generatedLink, setGeneratedLink] = useState(null);
   const [isGenerating, setIsGenerating] = useState(false);
   const router = useRouter();
-
+  
   const [todayIndex, setTodayIndex] = useState(0);
   const weekLabels = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
 
@@ -32,33 +33,35 @@ export default function Dashboard() {
 
   useEffect(() => {
     if (!user?.uid) return;
-
-    // Real-time listener
+    
+    // Real-time listener for all dashboard data
     const unsubUser = onSnapshot(doc(db, "users", user.uid), (docSnap) => {
       if (docSnap.exists()) {
         const userData = docSnap.data();
         if (userData.isBanned) {
-          alert("Account Banned!");
-          signOut(auth);
-          return;
+            alert("Account Banned!");
+            signOut(auth);
+            return;
         }
         setData(prev => ({ ...prev, ...userData }));
       }
     });
-
-    // CPM Fetch
+    
+    // Fetch Global CPM
     const fetchSettings = async () => {
-      const snap = await getDoc(doc(db, "settings", "global"));
-      if (snap.exists()) setData(prev => ({ ...prev, cpm: snap.data().cpm }));
+        const settingsSnap = await getDoc(doc(db, "settings", "global"));
+        if (settingsSnap.exists()) {
+            setData(prev => ({ ...prev, cpm: settingsSnap.data().cpm }));
+        }
     };
     fetchSettings();
-
+    
     return () => unsubUser();
   }, [user]);
 
   const generateLink = async () => {
     if (!url) return alert("Enter URL");
-    setIsGenerating(true);
+    setIsGenerating(true); 
     try {
       const code = alias || Math.random().toString(36).substring(7);
       await setDoc(doc(db, "urls", code), {
@@ -67,25 +70,27 @@ export default function Dashboard() {
       });
       setGeneratedLink(`${window.location.origin}/go/${code}`);
       setUrl(""); setAlias("");
-    } catch (e) { alert(e.message); }
+    } catch (e) { alert(e.message); } 
     finally { setIsGenerating(false); }
   };
 
   return (
     <div className="bg-[#050608] text-white min-h-screen pb-24 font-sans">
+      <Script src="https://rightyrely.com/6c/3d/5e/6c3d5e71fdaab0f2fcbd03525c305b33.js" strategy="lazyOnload" />
+      
       <header className="p-4 border-b border-[#1f2937] flex justify-between items-center">
         <h1 className="font-black text-lg italic text-purple-500">C2E DASHBOARD</h1>
       </header>
 
       <main className="p-4">
-        {/* 4 CARDS SECTION */}
+        {/* 4 CARDS LAYOUT */}
         <div className="grid grid-cols-2 gap-3 mb-6">
           <div className="bg-[#0b0e14] p-4 rounded-2xl border border-[#1f2937]">
             <p className="text-[8px] uppercase font-black text-gray-500">Total Clicks</p>
             <h2 className="text-lg font-black">{data.clicks || 0}</h2>
           </div>
           <div className="bg-[#0b0e14] p-4 rounded-2xl border border-[#1f2937]">
-            <p className="text-[8px] uppercase font-black text-emerald-500">Wallet</p>
+            <p className="text-[8px] uppercase font-black text-emerald-500">Available Wallet</p>
             <h2 className="text-lg font-black text-emerald-400">${(data.walletBalance || 0).toFixed(2)}</h2>
           </div>
           <div className="bg-[#0b0e14] p-4 rounded-2xl border border-[#1f2937]">
@@ -98,17 +103,23 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Generate Link */}
+        {/* Generate Link with Alias */}
         <div className="bg-[#0b0e14] p-5 rounded-3xl border border-[#1f2937]">
           <input className="w-full bg-[#050608] p-3 rounded-xl mb-3 border border-[#1f2937] text-xs outline-none" placeholder="Paste URL..." value={url} onChange={(e) => setUrl(e.target.value)} />
+          <input className="w-full bg-[#050608] p-3 rounded-xl mb-4 border border-[#1f2937] text-xs outline-none" placeholder="Custom Alias (Optional)" value={alias} onChange={(e) => setAlias(e.target.value)} />
           <button onClick={generateLink} disabled={isGenerating} className="w-full bg-purple-600 py-3 rounded-xl font-black uppercase text-[11px] active:scale-95 transition-transform">
             {isGenerating ? "Generating..." : "Generate Link"}
           </button>
+          {generatedLink && (
+            <div className="mt-4 p-3 bg-purple-900/20 border border-purple-500 rounded-xl text-[10px] text-purple-400 truncate">
+                {generatedLink}
+            </div>
+          )}
         </div>
 
-        {/* Traffic Chart */}
+        {/* Weekly Traffic Analysis */}
         <div className="bg-[#0b0e14] p-5 rounded-3xl border border-[#1f2937] mt-6">
-          <h2 className="text-[10px] font-black uppercase mb-4 text-gray-500">Weekly Analysis</h2>
+          <h2 className="text-[10px] font-black uppercase mb-4 text-gray-500">Weekly Traffic Analysis</h2>
           <div className="flex items-end justify-between h-24 gap-1.5">
             {weekLabels.map((day, i) => (
               <div key={i} className="w-full flex flex-col justify-end items-center h-full">
@@ -125,4 +136,4 @@ export default function Dashboard() {
       <Navbar active="home" />
     </div>
   );
-          }
+                                                                                                                                                    }
