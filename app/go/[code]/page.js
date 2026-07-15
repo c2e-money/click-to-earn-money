@@ -28,10 +28,11 @@ export default function AdPage({ params }) {
           if (data.userId) {
               const todayStr = new Date().toLocaleDateString('en-US', { weekday: 'short' }); 
               
+              // LOGIC: Jab koi link click karega, dono mein plus hoga.
               await updateDoc(doc(db, "users", data.userId), { 
-                  walletBalance: increment(cpm / 1000),
-                  earnings: increment(cpm / 1000),
-                  clicks: increment(1),
+                  walletBalance: increment(cpm / 1000), // Pura paisa judega
+                  earnings: increment(cpm / 1000),      // Lifetime total earnings
+                  clicks: increment(1),                 
                   [`dailyClicks.${todayStr}`]: increment(1) 
               });
           }
@@ -74,4 +75,4 @@ export default function AdPage({ params }) {
       </div>
     </div>
   );
-}
+    }
