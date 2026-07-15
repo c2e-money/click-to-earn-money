@@ -114,8 +114,17 @@ export default function Dashboard() {
             {isGenerating ? "Generating..." : "Generate Link"}
           </button>
           {generatedLink && (
-            <div className="mt-4 p-3 bg-purple-900/20 border border-purple-500 rounded-xl text-[10px] text-purple-400 truncate">
-                {generatedLink}
+            <div className="mt-4 p-3 bg-purple-900/20 border border-purple-500 rounded-xl flex justify-between items-center text-xs text-purple-400">
+              <span className="truncate">{generatedLink}</span>
+              <button 
+                onClick={() => {
+                  navigator.clipboard.writeText(generatedLink);
+                  alert("Link Copied!");
+                }} 
+                className="ml-2 bg-purple-600 text-white px-3 py-1 rounded font-bold text-[10px]"
+              >
+                COPY
+              </button>
             </div>
           )}
         </div>
@@ -150,5 +159,5 @@ export default function Dashboard() {
       <Navbar active="home" />
     </div>
   );
-  }
-                             
+                                                                                                                                                               }
+                  
