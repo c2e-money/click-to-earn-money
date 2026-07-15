@@ -6,41 +6,57 @@ import Script from "next/script";
 export default function StepPage() {
   const { code, step } = useParams();
   const currentStep = parseInt(step);
+  const router = useRouter();
+  
   const [showModal, setShowModal] = useState(true);
   const [showContinue, setShowContinue] = useState(false);
   const [timer, setTimer] = useState(currentStep === 4 ? 5 : 20);
 
   useEffect(() => {
-    // 15 seconds mein popup auto-close (no close button)
+    // 15 seconds mein popup auto-close logic
     const modalTimer = setTimeout(() => setShowModal(false), 15000);
-    // 10 seconds mein "Continue" button reveal
+    
+    // 10 seconds mein Continue button reveal
     const revealTimer = setTimeout(() => setShowContinue(true), 10000);
     
+    // Countdown Timer logic
     const countdown = setInterval(() => {
       setTimer((prev) => (prev <= 1 ? (clearInterval(countdown), 0) : prev - 1));
     }, 1000);
 
+    // Dynamic Ad Injection for Popup
+    if (showModal) {
+      const script = document.createElement("script");
+      script.src = "https://rightyrely.com/4f8b4de41cea03dc9d830849c3900efa/invoke.js";
+      script.async = true;
+      const container = document.getElementById("ad-container-popup");
+      if (container) container.appendChild(script);
+    }
+
     return () => { clearTimeout(modalTimer); clearTimeout(revealTimer); clearInterval(countdown); };
-  }, []);
+  }, [showModal]);
 
   const handleContinue = () => {
-    if (currentStep < 4) window.open(`/go/${code}/${currentStep + 1}`, "_blank");
-    else window.location.href = "/final-url";
+    if (currentStep < 4) {
+      window.open(`/go/${code}/${currentStep + 1}`, "_blank");
+    } else {
+      window.location.href = "/final-url"; // Apni destination URL
+    }
   };
 
   return (
     <div className="min-h-screen bg-[#0a0a0c] text-white font-sans selection:bg-purple-500">
       
-      {/* 1. FORCED POPUP */}
+      {/* 1. FORCED POPUP (No close button) */}
       {showModal && (
         <div className="fixed inset-0 bg-black/95 z-[999] flex items-center justify-center p-4 backdrop-blur-sm">
-          <div className="bg-[#131722] border border-[#2d3748] rounded-3xl p-6 w-full max-w-sm text-center shadow-2xl shadow-purple-900/20">
-            <h3 className="text-white font-black text-xl mb-3 animate-pulse">👇 CLICK BANNER & WAIT 👇</h3>
-            <p className="text-gray-400 text-sm mb-6">Support us by clicking the ad below to unlock the next step.</p>
-            <div id="container-4f8b4de41cea03dc9d830849c3900efa" className="min-h-[250px] bg-gray-900 rounded-xl flex items-center justify-center">
-              <Script src="https://rightyrely.com/4f8b4de41cea03dc9d830849c3900efa/invoke.js" strategy="lazyOnload" />
+          <div className="bg-[#131722] border border-[#2d3748] rounded-3xl p-6 w-full max-w-sm text-center shadow-2xl">
+            <h3 className="text-white font-black text-xl mb-4 animate-pulse">👇 CLICK BANNER & WAIT 👇</h3>
+            <p className="text-gray-400 text-sm mb-6">Click the image below & wait 10s to unlock the next step.</p>
+            
+            <div id="ad-container-popup" className="min-h-[250px] bg-gray-900 rounded-xl flex items-center justify-center overflow-hidden">
+               {/* Ad injects here dynamically */}
             </div>
-            <p className="text-[10px] text-gray-500 mt-4">Auto-closing in 15s...</p>
           </div>
         </div>
       )}
@@ -78,7 +94,8 @@ export default function StepPage() {
         )}
       </main>
 
+      {/* 5. FOOTER AD */}
       <Script src="https://rightyrely.com/6c/3d/5e/6c3d5e71fdaab0f2fcbd03525c305b33.js" strategy="afterInteractive" />
     </div>
   );
-}
+        }
