@@ -5,7 +5,7 @@ import Script from "next/script";
 
 // --- FIREBASE IMPORT & CONFIG ---
 import { initializeApp } from "firebase/app";
-import { getFirestore, collection, query, where, getDocs } from "firebase/firestore";
+import { getFirestore, doc, getDoc, collection, query, where, getDocs } from "firebase/firestore";
 
 const firebaseConfig = {
   apiKey: "AIzaSyD3Yl0BR4o6qEX6MeXYjX6Qjlr5BCid5C8",
@@ -31,9 +31,12 @@ export default function StepPage() {
   const [isFetching, setIsFetching] = useState(false);
 
   useEffect(() => {
+    // 15 seconds popup auto close
     const modalTimer = setTimeout(() => setShowModal(false), 15000);
+    // 10 seconds top text reveal
     const revealTimer = setTimeout(() => setShowContinue(true), 10000);
     
+    // Page Countdown Timer
     const countdown = setInterval(() => {
       setTimer((prev) => (prev <= 1 ? (clearInterval(countdown), 0) : prev - 1));
     }, 1000);
@@ -43,35 +46,57 @@ export default function StepPage() {
 
   const handleContinue = async () => {
     if (currentStep < 4) {
+      // Agle step ko naye tab me open karna
       window.open(`/go/${code}/${currentStep + 1}`, "_blank");
     } else {
+      // STEP 4: Fetch Destination Link via Firebase (Smart Search)
       setIsFetching(true);
       try {
-        console.log("Searching for alias in Firebase:", code);
-        
-        // Yahan collection ka naam 'urls' kar diya gaya hai (Screenshot ke hisaab se)
-        const linksRef = collection(db, "urls"); 
-        
-        const q = query(linksRef, where("alias", "==", code));
-        const querySnapshot = await getDocs(q);
+        console.log("Searching for URL with ID/Alias:", code);
+        let destinationUrl = null;
 
-        if (!querySnapshot.empty) {
-          const data = querySnapshot.docs[0].data();
-          console.log("Data found:", data);
-          
-          if (data.url) { 
-            window.location.href = data.url; 
-          } else {
-            alert("Database Error: 'url' field not found in this document. Check if your field is named 'url'.");
-            setIsFetching(false);
+        // METHOD 1: Sabse pehle seedha Document ID check karte hain (Auto-generated ke liye)
+        const docRef = doc(db, "urls", code);
+        const docSnap = await getDoc(docRef);
+        
+        if (docSnap.exists() && docSnap.data().originalUrl) {
+          destinationUrl = docSnap.data().originalUrl;
+          console.log("Found via Document ID!");
+        }
+
+        // METHOD 2: Agar Document ID se nahi mila, to "code" field me check karo
+        if (!destinationUrl) {
+          const qCode = query(collection(db, "urls"), where("code", "==", code));
+          const snapCode = await getDocs(qCode);
+          if (!snapCode.empty && snapCode.docs[0].data().originalUrl) {
+            destinationUrl = snapCode.docs[0].data().originalUrl;
+            console.log("Found via 'code' field!");
           }
+        }
+
+        // METHOD 3: Agar fir bhi nahi mila, to "alias" field me check karo (Custom Alias ke liye)
+        if (!destinationUrl) {
+          const qAlias = query(collection(db, "urls"), where("alias", "==", code));
+          const snapAlias = await getDocs(qAlias);
+          if (!snapAlias.empty && snapAlias.docs[0].data().originalUrl) {
+            destinationUrl = snapAlias.docs[0].data().originalUrl;
+            console.log("Found via 'alias' field!");
+          }
+        }
+
+        // FINAL REDIRECTION
+        if (destinationUrl) {
+          // Link mil gayi, ab final destination par bhej do
+          window.location.href = destinationUrl;
         } else {
-          alert(`Link not found for alias: ${code}. Please check your database.`);
+          // Link database mein kahin nahi mili
+          alert("Error: Destination URL not found in database for this link.");
           setIsFetching(false);
         }
+
       } catch (error) {
-        console.error("Firebase Error:", error);
-        alert("Database connection failed!");
+        console.error("Firebase Search Error:", error);
+        alert("Database connection failed. Please try again.");
         setIsFetching(false);
       }
     }
