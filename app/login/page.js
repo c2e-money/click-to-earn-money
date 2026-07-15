@@ -22,7 +22,9 @@ export default function Login() {
             email: email, 
             walletBalance: 0.00, 
             earnings: 0.00,
-            clicks: 0 
+            totalWithdrawn: 0.00, // NAYA: Total withdrawn zero se shuru
+            clicks: 0,
+            dailyClicks: {}
         });
       }
       router.push("/dashboard");
