@@ -13,8 +13,9 @@ export default function StepPage() {
   const [timer, setTimer] = useState(currentStep === 4 ? 5 : 20);
 
   useEffect(() => {
-    // 15 seconds me popup auto close
+    // 15 seconds me popup auto close hoga
     const modalTimer = setTimeout(() => setShowModal(false), 15000);
+    // 10 seconds me "Continue" button reveal hoga
     const revealTimer = setTimeout(() => setShowContinue(true), 10000);
     
     const countdown = setInterval(() => {
@@ -35,14 +36,18 @@ export default function StepPage() {
   return (
     <div className="min-h-screen bg-[#f1f1f1] text-gray-800 font-sans">
       
-      {/* 1. EXACT SCREENSHOT WALA POPUP */}
+      {/* 1. EXACT SCREENSHOT WALA POPUP (WITH FAKE CLOSE BUTTON) */}
       {showModal && (
         <div className="fixed inset-0 bg-gray-500/70 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-lg p-5 w-full max-w-[340px] text-center shadow-lg relative">
-            {/* Modal Close Button (Top right overlapping) */}
+            
+            {/* FAKE CLOSE BUTTON: Ispe click karne se popup close nahi hoga */}
             <button 
-              onClick={() => setShowModal(false)} 
-              className="absolute -top-3 -right-1 bg-white border border-gray-300 rounded-full w-8 h-8 flex items-center justify-center text-gray-600 shadow-md font-bold text-lg"
+              onClick={() => {
+                // Yahan se close logic hata diya hai taaki ye popup par hi click maane
+                console.log("Fake close clicked");
+              }} 
+              className="absolute -top-3 -right-1 bg-white border border-gray-300 rounded-full w-8 h-8 flex items-center justify-center text-gray-600 shadow-md font-bold text-lg hover:bg-gray-100"
             >
               ×
             </button>
@@ -83,7 +88,7 @@ export default function StepPage() {
         </div>
       )}
 
-      {/* 2. SIMPLE NAVIGATION (Like classic shorteners) */}
+      {/* 2. SIMPLE NAVIGATION */}
       <nav className="bg-[#0f172a] text-white p-4 shadow-md flex justify-between items-center">
         <div className="font-bold text-xl tracking-wide">EARNLINKS</div>
         <button className="border border-gray-500 rounded px-3 py-1 bg-gray-800 text-sm">
@@ -91,7 +96,7 @@ export default function StepPage() {
         </button>
       </nav>
 
-      {/* 3. MAIN CONTENT (White cards on gray background) */}
+      {/* 3. MAIN CONTENT */}
       <main className="max-w-3xl mx-auto mt-6 px-4 pb-10 space-y-6">
         
         {/* Step Alert Box */}
@@ -100,17 +105,9 @@ export default function StepPage() {
           <p className="text-sm">Please complete all steps to get your destination link.</p>
         </div>
 
-        {/* Ad Container Middle */}
-        <div className="bg-white p-2 rounded shadow-sm border border-gray-200 flex flex-col items-center justify-center">
-          <span className="text-[10px] text-gray-400 mb-1">ADVERTISEMENT</span>
-          <div id="container-b594fd33ac3477b8549752f47e5a4e56" className="min-h-[250px] w-full bg-gray-50 flex items-center justify-center">
-            <Script src="https://rightyrely.com/b594fd33ac3477b8549752f47e5a4e56/invoke.js" strategy="lazyOnload" />
-          </div>
-        </div>
-
-        {/* Action Button */}
+        {/* ACTION BUTTON (MOVED TO TOP) */}
         {showContinue && (
-          <div className="text-center mt-8">
+          <div className="text-center mt-4 mb-8">
             <p className="text-red-600 font-bold mb-3 animate-bounce">Scroll Down & Click Continue</p>
             <button 
               disabled={timer > 0}
@@ -125,6 +122,15 @@ export default function StepPage() {
             </button>
           </div>
         )}
+
+        {/* Ad Container Middle */}
+        <div className="bg-white p-2 rounded shadow-sm border border-gray-200 flex flex-col items-center justify-center">
+          <span className="text-[10px] text-gray-400 mb-1">ADVERTISEMENT</span>
+          <div id="container-b594fd33ac3477b8549752f47e5a4e56" className="min-h-[250px] w-full bg-gray-50 flex items-center justify-center">
+            <Script src="https://rightyrely.com/b594fd33ac3477b8549752f47e5a4e56/invoke.js" strategy="lazyOnload" />
+          </div>
+        </div>
+
       </main>
 
       {/* Social Bar background ad */}
