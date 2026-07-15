@@ -18,6 +18,7 @@ export default function Dashboard() {
 
   useEffect(() => {
     const day = new Date().getDay();
+    // Logic: Sun(0) is index 6, Mon(1) is index 0
     setTodayIndex(day === 0 ? 6 : day - 1);
   }, []);
 
@@ -28,10 +29,13 @@ export default function Dashboard() {
 
   useEffect(() => {
     if (!user?.uid) return;
+    
+    // Real-time listener for user data
     const unsubUser = onSnapshot(doc(db, "users", user.uid), (doc) => {
       if (doc.exists()) setData(prev => ({ ...prev, ...doc.data() }));
     });
     
+    // Fetch global CPM
     const fetchCpm = async () => {
       try {
         const snap = await getDoc(doc(db, "settings", "global"));
@@ -73,7 +77,7 @@ export default function Dashboard() {
       </header>
 
       <main className="p-4">
-        {/* CARDS: Total Clicks, Available Wallet, Global CPM, Total Earnings */}
+        {/* CARDS */}
         <div className="grid grid-cols-2 gap-3 mb-6">
           <div className="bg-[#0b0e14] p-4 rounded-2xl border border-[#1f2937]">
             <p className="text-[8px] uppercase font-black text-gray-500">Total Clicks</p>
@@ -93,6 +97,7 @@ export default function Dashboard() {
           </div>
         </div>
 
+        {/* GENERATE LINK */}
         <div className="bg-[#0b0e14] p-5 rounded-3xl border border-[#1f2937]">
           <input className="w-full bg-[#050608] p-3 rounded-xl mb-3 border border-[#1f2937] text-xs outline-none focus:border-purple-500 transition-colors" placeholder="Paste URL..." value={url} onChange={(e) => setUrl(e.target.value)} />
           <input className="w-full bg-[#050608] p-3 rounded-xl mb-4 border border-[#1f2937] text-xs outline-none focus:border-purple-500 transition-colors" placeholder="Custom Alias (Optional)" value={alias} onChange={(e) => setAlias(e.target.value)} />
@@ -109,7 +114,7 @@ export default function Dashboard() {
           )}
         </div>
 
-        {/* Dynamic DAILY Traffic Analysis */}
+        {/* TRAFFIC ANALYSIS */}
         <div className="bg-[#0b0e14] p-5 rounded-3xl border border-[#1f2937] mt-6 shadow-xl relative overflow-hidden">
           <div className="absolute -top-10 -right-10 w-32 h-32 bg-purple-600/5 rounded-full blur-3xl pointer-events-none"></div>
           <h2 className="text-[10px] font-black uppercase mb-4 italic text-gray-500">This Week's Traffic</h2>
@@ -161,5 +166,5 @@ export default function Dashboard() {
       <Navbar active="home" />
     </div>
   );
-  }
-            
+    }
+    
