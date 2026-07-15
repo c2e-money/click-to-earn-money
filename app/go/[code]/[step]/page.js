@@ -33,7 +33,7 @@ export default function StepPage() {
     if (currentStep < 4) {
       window.open(`/go/${code}/${currentStep + 1}`, "_blank");
     } else {
-      window.location.href = "/final-url"; 
+      window.location.href = "/final-url"; // Yahan apni final link daal dena
     }
   };
 
@@ -49,7 +49,7 @@ export default function StepPage() {
         <div className="fixed inset-0 bg-gray-500/80 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-lg p-5 w-full max-w-[340px] text-center shadow-2xl relative">
             
-            {/* Fake Close Icon */}
+            {/* Fake Close Icon: Ispe click karne se popup close nahi hoga */}
             <button 
               onClick={() => { console.log("Ad clicked fake close"); }} 
               className="absolute -top-3 -right-1 bg-white border border-gray-300 rounded-full w-8 h-8 flex items-center justify-center text-gray-600 shadow-md font-bold text-lg hover:bg-gray-100"
@@ -127,9 +127,9 @@ export default function StepPage() {
           </div>
         </div>
 
-        {/* Dummy Space to force user to scroll */}
-        <div className="h-32 w-full flex items-center justify-center border-2 border-dashed border-gray-300 rounded-lg opacity-50">
-           <p className="text-gray-400 text-sm font-bold">Keep Scrolling...</p>
+        {/* Dummy Space to force user to scroll (Ab isko thoda clean kar diya hai) */}
+        <div className="h-32 w-full flex items-center justify-center border-2 border-dashed border-gray-300 rounded-lg opacity-60">
+           <p className="text-gray-500 text-sm font-bold tracking-widest uppercase">Keep Scrolling</p>
         </div>
 
         {/* BOTTOM BUTTON */}
@@ -147,10 +147,12 @@ export default function StepPage() {
           </button>
         </div>
 
-        {/* BOTTOM AD: Banner (Catches post-click attention) */}
-        <div className="w-full max-w-[320px] mx-auto bg-white p-2 rounded shadow-sm border border-gray-200 flex flex-col items-center justify-center">
+        {/* BOTTOM AD: Banner (Fixed the missing container ID issue) */}
+        <div className="w-full max-w-[320px] mx-auto bg-white p-2 rounded shadow-sm border border-gray-200 flex flex-col items-center justify-center mt-4">
           <span className="text-[10px] text-gray-400 mb-1 font-bold">SPONSORED</span>
-          <Script src="https://rightyrely.com/4f8b4de41cea03dc9d830849c3900efa/invoke.js" strategy="lazyOnload" />
+          <div id="container-4f8b4de41cea03dc9d830849c3900efa" className="min-h-[50px] w-full flex justify-center items-center bg-gray-50">
+            <Script src="https://rightyrely.com/4f8b4de41cea03dc9d830849c3900efa/invoke.js" strategy="lazyOnload" />
+          </div>
         </div>
 
       </main>
