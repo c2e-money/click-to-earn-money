@@ -77,7 +77,7 @@ export default function Withdraw() {
             </div>
         </div>
 
-        {/* Dynamic Payment Setup (RESTORED) */}
+        {/* Payment Setup */}
         <div className="bg-[#0b0e14] p-5 rounded-3xl border border-[#1f2937]">
           <h3 className="text-[10px] font-black uppercase text-gray-500 mb-3">Setup Payment Method</h3>
           {data.paymentMethod ? (
@@ -88,7 +88,7 @@ export default function Withdraw() {
                     <p key={key}><span className="capitalize">{key}:</span> {val}</p>
                 ))}
               </div>
-              <button onClick={() => updateDoc(doc(db, "users", user.uid), { paymentMethod: null }).then(fetchData)} className="text-[8px] text-red-500 underline mt-2">Change</button>
+              <button onClick={() => updateDoc(doc(db, "users", user.uid), { paymentMethod: null }).then(() => fetchData(user.uid))} className="text-[8px] text-red-500 underline mt-2">Change</button>
             </div>
           ) : (
             <div className="space-y-3">
@@ -133,7 +133,7 @@ export default function Withdraw() {
           </button>
         </div>
 
-        {/* History (RESTORED WITH CRASH FIX) */}
+        {/* History */}
         <div>
           <h3 className="text-[10px] font-black uppercase text-gray-500 mb-3">Transaction History</h3>
           <div className="space-y-3">
@@ -159,4 +159,4 @@ export default function Withdraw() {
     </div>
   );
             }
-                                 
+                                                                                                              
