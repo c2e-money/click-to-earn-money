@@ -6,10 +6,11 @@ import { onAuthStateChanged } from "firebase/auth";
 import Navbar from "@/app/components/Navbar";
 
 export default function Withdraw() {
-  const [data, setData] = useState({ walletBalance: 0, withdrawals: [], paymentMethod: null });
+  const [data, setData] = useState({ walletBalance: 0, totalWithdrawn: 0, withdrawals: [], paymentMethod: null });
   const [user, setUser] = useState(null);
   const [amount, setAmount] = useState("");
   const [loading, setLoading] = useState(false);
+  
   const [method, setMethod] = useState("");
   const [details, setDetails] = useState({});
 
@@ -25,10 +26,18 @@ export default function Withdraw() {
     if (docSnap.exists()) setData(docSnap.data());
   };
 
+  const savePayment = async () => {
+    if (!method || Object.keys(details).length === 0) return alert("Fill all details!");
+    await updateDoc(doc(db, "users", user.uid), { paymentMethod: { method, details } });
+    alert("Payment details saved!");
+    fetchData(user.uid);
+  };
+
   const handleWithdraw = async () => {
     const wAmount = parseFloat(amount);
     if (!wAmount || wAmount < 5) return alert("Minimum withdrawal is $5.00");
     if (wAmount > data.walletBalance) return alert("Insufficient balance!");
+    if (!data.paymentMethod) return alert("Setup payment method first!");
 
     setLoading(true);
     try {
@@ -38,8 +47,8 @@ export default function Withdraw() {
         withdrawals: arrayUnion({
           id: withdrawId,
           amount: wAmount.toFixed(2),
-          method: data.paymentMethod?.method || "N/A",
-          details: data.paymentMethod?.details || {},
+          method: data.paymentMethod.method,
+          details: data.paymentMethod.details,
           status: 'Pending',
           date: new Date().toISOString()
         })
@@ -55,18 +64,76 @@ export default function Withdraw() {
     <div className="flex flex-col h-screen bg-[#050608] text-white">
       <header className="p-4 border-b border-[#1f2937] font-black uppercase text-purple-500">Withdraw Funds</header>
       <main className="flex-1 overflow-y-auto p-4 space-y-6 pb-24">
-        <div className="bg-[#0b0e14] p-4 rounded-xl border border-[#1f2937]">
-            <p className="text-[10px] text-gray-500 uppercase font-black">Available Balance</p>
-            <p className="text-2xl font-black text-emerald-400">${(data.walletBalance || 0).toFixed(2)}</p>
+        
+        {/* Stats */}
+        <div className="grid grid-cols-2 gap-3">
+            <div className="bg-[#0b0e14] p-4 rounded-2xl border border-[#1f2937]">
+                <p className="text-[8px] uppercase font-black text-emerald-500">Available</p>
+                <h2 className="text-lg font-black">${(data.walletBalance || 0).toFixed(2)}</h2>
+            </div>
+            <div className="bg-[#0b0e14] p-4 rounded-2xl border border-[#1f2937]">
+                <p className="text-[8px] uppercase font-black text-gray-500">Total Withdrawn</p>
+                <h2 className="text-lg font-black">${(data.totalWithdrawn || 0).toFixed(2)}</h2>
+            </div>
         </div>
 
+        {/* Dynamic Payment Setup (RESTORED) */}
+        <div className="bg-[#0b0e14] p-5 rounded-3xl border border-[#1f2937]">
+          <h3 className="text-[10px] font-black uppercase text-gray-500 mb-3">Setup Payment Method</h3>
+          {data.paymentMethod ? (
+            <div className="bg-[#1f2937] p-3 rounded-xl">
+              <p className="text-[10px] font-bold text-emerald-400">{data.paymentMethod.method}</p>
+              <div className="text-xs text-white mt-1">
+                {Object.entries(data.paymentMethod.details).map(([key, val]) => (
+                    <p key={key}><span className="capitalize">{key}:</span> {val}</p>
+                ))}
+              </div>
+              <button onClick={() => updateDoc(doc(db, "users", user.uid), { paymentMethod: null }).then(fetchData)} className="text-[8px] text-red-500 underline mt-2">Change</button>
+            </div>
+          ) : (
+            <div className="space-y-3">
+              <select onChange={(e) => { setMethod(e.target.value); setDetails({}); }} className="w-full bg-[#050608] p-3 rounded-xl border border-[#1f2937] text-xs font-bold outline-none">
+                <option value="">Select Method</option>
+                <option value="UPI">UPI</option>
+                <option value="Google Pay">Google Pay</option>
+                <option value="PhonePe">PhonePe</option>
+                <option value="PayPal">PayPal</option>
+                <option value="Bank Transfer">Bank Transfer</option>
+                <option value="Redeem Code">Google Play Redeem Code</option>
+              </select>
+
+              {method === "UPI" && <input placeholder="Enter UPI ID" onChange={(e) => setDetails({ upiId: e.target.value })} className="w-full bg-[#050608] p-3 rounded-xl border border-[#1f2937] text-xs" />}
+              {method === "Google Pay" && <input placeholder="Enter GPay Number" onChange={(e) => setDetails({ number: e.target.value })} className="w-full bg-[#050608] p-3 rounded-xl border border-[#1f2937] text-xs" />}
+              {method === "PhonePe" && <input placeholder="Enter PhonePe Number" onChange={(e) => setDetails({ number: e.target.value })} className="w-full bg-[#050608] p-3 rounded-xl border border-[#1f2937] text-xs" />}
+              {method === "PayPal" && <input placeholder="Enter PayPal Email" onChange={(e) => setDetails({ email: e.target.value })} className="w-full bg-[#050608] p-3 rounded-xl border border-[#1f2937] text-xs" />}
+              {method === "Bank Transfer" && (
+                <div className="space-y-2">
+                  <input placeholder="Account Holder Name" onChange={(e) => setDetails(prev => ({...prev, name: e.target.value}))} className="w-full bg-[#050608] p-3 rounded-xl border border-[#1f2937] text-xs" />
+                  <input placeholder="Account Number" onChange={(e) => setDetails(prev => ({...prev, acc: e.target.value}))} className="w-full bg-[#050608] p-3 rounded-xl border border-[#1f2937] text-xs" />
+                  <input placeholder="IFSC Code" onChange={(e) => setDetails(prev => ({...prev, ifsc: e.target.value}))} className="w-full bg-[#050608] p-3 rounded-xl border border-[#1f2937] text-xs" />
+                </div>
+              )}
+              {method === "Redeem Code" && (
+                <div className="space-y-2">
+                  <input placeholder="Email for Code" onChange={(e) => setDetails(prev => ({...prev, email: e.target.value}))} className="w-full bg-[#050608] p-3 rounded-xl border border-[#1f2937] text-xs" />
+                  <input placeholder="WhatsApp Number" onChange={(e) => setDetails(prev => ({...prev, whatsapp: e.target.value}))} className="w-full bg-[#050608] p-3 rounded-xl border border-[#1f2937] text-xs" />
+                </div>
+              )}
+              
+              <button onClick={savePayment} className="w-full bg-purple-600 py-3 rounded-xl text-[10px] font-black uppercase">Save Method</button>
+            </div>
+          )}
+        </div>
+
+        {/* Withdraw */}
         <div className="bg-[#0b0e14] p-5 rounded-3xl border border-[#1f2937]">
           <input type="number" value={amount} onChange={(e) => setAmount(e.target.value)} placeholder="Amount (Min $5)" className="w-full bg-[#050608] p-4 rounded-xl border border-[#1f2937] mb-3 text-sm font-bold" />
-          <button onClick={handleWithdraw} disabled={loading} className="w-full bg-purple-600 p-4 rounded-xl font-black uppercase text-xs">
-            {loading ? "Processing..." : "Request Payout"}
+          <button onClick={handleWithdraw} disabled={loading} className="w-full bg-emerald-600 p-4 rounded-xl font-black uppercase text-xs active:scale-95 transition-transform">
+            {loading ? "Processing..." : "Withdraw Now"}
           </button>
         </div>
 
+        {/* History (RESTORED WITH CRASH FIX) */}
         <div>
           <h3 className="text-[10px] font-black uppercase text-gray-500 mb-3">Transaction History</h3>
           <div className="space-y-3">
@@ -74,10 +141,12 @@ export default function Withdraw() {
               [...data.withdrawals].reverse().map((h, index) => (
                 <div key={index} className="bg-[#0b0e14] p-4 rounded-2xl border border-[#1f2937] flex justify-between items-center text-xs">
                   <div>
-                    <p className="font-black">${h.amount} ({h.id})</p>
-                    <p className="text-[9px] text-gray-400">{h.method}</p>
+                    <p className="font-black text-white">${h.amount} <span className="text-[8px] text-gray-500">(ID: {h.id})</span></p>
+                    <p className="text-[9px] text-gray-400 mt-1">{h.method}</p>
                   </div>
-                  <span className={`font-black uppercase ${h.status === 'Paid' ? 'text-emerald-500' : 'text-yellow-500'}`}>{h.status}</span>
+                  <span className={`font-black uppercase px-2 py-1 rounded-md text-[9px] ${h.status === 'Paid' ? 'bg-emerald-900/30 text-emerald-400' : h.status === 'Rejected' ? 'bg-red-900/30 text-red-400' : 'bg-yellow-900/30 text-yellow-400'}`}>
+                    {h.status}
+                  </span>
                 </div>
               ))
             ) : (
@@ -89,5 +158,5 @@ export default function Withdraw() {
       <Navbar active="withdraw" />
     </div>
   );
-  }
-              
+            }
+                                 
