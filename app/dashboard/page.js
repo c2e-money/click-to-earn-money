@@ -4,7 +4,6 @@ import { db, auth } from "@/lib/firebase";
 import { doc, onSnapshot, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import { onAuthStateChanged, signOut } from "firebase/auth";
 import { useRouter } from "next/navigation";
-import Script from "next/script";
 import Navbar from "@/app/components/Navbar";
 
 export default function Dashboard() {
@@ -21,7 +20,6 @@ export default function Dashboard() {
 
   useEffect(() => {
     const day = new Date().getDay();
-    // Monday(1) -> 0, Sunday(0) -> 6
     setTodayIndex(day === 0 ? 6 : day - 1);
   }, []);
 
@@ -35,7 +33,6 @@ export default function Dashboard() {
   useEffect(() => {
     if (!user?.uid) return;
     
-    // Live User Data Sync
     const unsubUser = onSnapshot(doc(db, "users", user.uid), (docSnap) => {
       if (docSnap.exists()) {
         const userData = docSnap.data();
@@ -48,7 +45,6 @@ export default function Dashboard() {
       }
     });
     
-    // Fetch Global CPM
     const fetchSettings = async () => {
         try {
             const settingsSnap = await getDoc(doc(db, "settings", "global"));
@@ -79,14 +75,13 @@ export default function Dashboard() {
 
   return (
     <div className="bg-[#050608] text-white min-h-screen pb-24 font-sans">
-      <Script src="https://rightyrely.com/6c/3d/5e/6c3d5e71fdaab0f2fcbd03525c305b33.js" strategy="lazyOnload" />
+      {/* Yahan se wo <Script> tag maine hata diya hai */}
       
       <header className="p-4 border-b border-[#1f2937] flex justify-between items-center">
         <h1 className="font-black text-lg italic text-purple-500">C2E DASHBOARD</h1>
       </header>
 
       <main className="p-4">
-        {/* 4 CARDS LAYOUT */}
         <div className="grid grid-cols-2 gap-3 mb-6">
           <div className="bg-[#0b0e14] p-4 rounded-2xl border border-[#1f2937]">
             <p className="text-[8px] uppercase font-black text-gray-500">Total Clicks</p>
@@ -106,7 +101,6 @@ export default function Dashboard() {
           </div>
         </div>
 
-        {/* Generate Link Input */}
         <div className="bg-[#0b0e14] p-5 rounded-3xl border border-[#1f2937]">
           <input className="w-full bg-[#050608] p-3 rounded-xl mb-3 border border-[#1f2937] text-xs outline-none" placeholder="Paste URL..." value={url} onChange={(e) => setUrl(e.target.value)} />
           <input className="w-full bg-[#050608] p-3 rounded-xl mb-4 border border-[#1f2937] text-xs outline-none" placeholder="Custom Alias (Optional)" value={alias} onChange={(e) => setAlias(e.target.value)} />
@@ -129,7 +123,6 @@ export default function Dashboard() {
           )}
         </div>
 
-        {/* Weekly Traffic Analysis with Today's Count */}
         <div className="bg-[#0b0e14] p-5 rounded-3xl border border-[#1f2937] mt-6">
           <div className="flex justify-between items-end mb-4">
             <div>
@@ -159,5 +152,5 @@ export default function Dashboard() {
       <Navbar active="home" />
     </div>
   );
-                                                                                                                                                               }
-                  
+  }
+            
