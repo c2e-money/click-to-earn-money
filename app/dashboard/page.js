@@ -38,7 +38,7 @@ export default function Dashboard() {
     try {
       const code = alias || Math.random().toString(36).substring(7);
       
-      // FIXED: Used setDoc instead of addDoc
+      // Fix: setDoc for correct routing
       await setDoc(doc(db, "urls", code), {
         originalUrl: url.startsWith('http') ? url : `https://${url}`,
         code: code,
@@ -60,6 +60,7 @@ export default function Dashboard() {
       </header>
 
       <main className="p-4">
+        {/* Stats Section */}
         <div className="grid grid-cols-2 gap-3 mb-6">
           <div className="bg-[#0b0e14] p-4 rounded-2xl border border-[#1f2937]">
             <p className="text-[8px] uppercase font-black text-gray-500">Clicks</p>
@@ -79,6 +80,7 @@ export default function Dashboard() {
           </div>
         </div>
 
+        {/* Link Generator */}
         <div className="bg-[#0b0e14] p-5 rounded-3xl border border-[#1f2937]">
           <input className="w-full bg-[#050608] p-3 rounded-xl mb-3 border border-[#1f2937] text-xs outline-none" placeholder="Paste URL..." value={url} onChange={(e) => setUrl(e.target.value)} />
           <input className="w-full bg-[#050608] p-3 rounded-xl mb-4 border border-[#1f2937] text-xs outline-none" placeholder="Custom Alias (Optional)" value={alias} onChange={(e) => setAlias(e.target.value)} />
@@ -91,9 +93,16 @@ export default function Dashboard() {
             </div>
           )}
         </div>
+
+        {/* Traffic Analysis (Restored) */}
+        <div className="bg-[#0b0e14] p-5 rounded-3xl border border-[#1f2937] mt-6">
+          <h2 className="text-[10px] font-black uppercase mb-4 italic text-gray-500">Traffic Analysis</h2>
+          <div className="text-center text-[10px] text-gray-700 py-4 italic">No traffic yet</div>
+        </div>
       </main>
 
       <Navbar active="home" />
     </div>
   );
-}
+            }
+                                                                                                                                                                                 
