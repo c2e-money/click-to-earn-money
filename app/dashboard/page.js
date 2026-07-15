@@ -1,13 +1,13 @@
 "use client";
 import { useState, useEffect } from "react";
 import { db, auth } from "@/lib/firebase";
-import { doc, onSnapshot, setDoc, serverTimestamp } from "firebase/firestore";
+import { doc, onSnapshot, getDoc, setDoc, serverTimestamp } from "firebase/firestore";
 import { onAuthStateChanged } from "firebase/auth";
 import Navbar from "@/app/components/Navbar";
 
 export default function Dashboard() {
   const [user, setUser] = useState(null);
-  const [data, setData] = useState({ clicks: 0, earnings: 0, walletBalance: 0, totalWithdrawn: 0, dailyClicks: {} });
+  const [data, setData] = useState({ clicks: 0, earnings: 0, walletBalance: 0, cpm: 0, dailyClicks: {} });
   const [url, setUrl] = useState("");
   const [alias, setAlias] = useState("");
   const [generatedLink, setGeneratedLink] = useState(null);
@@ -31,6 +31,15 @@ export default function Dashboard() {
     const unsubUser = onSnapshot(doc(db, "users", user.uid), (doc) => {
       if (doc.exists()) setData(prev => ({ ...prev, ...doc.data() }));
     });
+    
+    const fetchCpm = async () => {
+      try {
+        const snap = await getDoc(doc(db, "settings", "global"));
+        if (snap.exists()) setData(prev => ({ ...prev, cpm: snap.data().cpm }));
+      } catch (e) { console.error(e); }
+    };
+    fetchCpm();
+    
     return () => unsubUser();
   }, [user]);
 
@@ -64,7 +73,7 @@ export default function Dashboard() {
       </header>
 
       <main className="p-4">
-        {/* NAYE 4 CARDS Jaisa aapne bola */}
+        {/* CARDS: Total Clicks, Available Wallet, Global CPM, Total Earnings */}
         <div className="grid grid-cols-2 gap-3 mb-6">
           <div className="bg-[#0b0e14] p-4 rounded-2xl border border-[#1f2937]">
             <p className="text-[8px] uppercase font-black text-gray-500">Total Clicks</p>
@@ -75,8 +84,8 @@ export default function Dashboard() {
             <h2 className="text-lg font-black text-emerald-400">${(data.walletBalance || 0).toFixed(2)}</h2>
           </div>
           <div className="bg-[#0b0e14] p-4 rounded-2xl border border-[#1f2937]">
-            <p className="text-[8px] uppercase font-black text-red-400">Total Withdrawn</p>
-            <h2 className="text-lg font-black text-red-400">${(data.totalWithdrawn || 0).toFixed(2)}</h2>
+            <p className="text-[8px] uppercase font-black text-gray-500">Global CPM</p>
+            <h2 className="text-lg font-black">${(data.cpm || 0).toFixed(2)}</h2>
           </div>
           <div className="bg-[#0b0e14] p-4 rounded-2xl border border-[#1f2937]">
             <p className="text-[8px] uppercase font-black text-gray-500">Total Earnings</p>
@@ -152,4 +161,5 @@ export default function Dashboard() {
       <Navbar active="home" />
     </div>
   );
-}
+  }
+            
