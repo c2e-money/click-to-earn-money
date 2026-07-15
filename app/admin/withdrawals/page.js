@@ -9,6 +9,7 @@ export default function WithdrawalCenter() {
   const router = useRouter();
 
   useEffect(() => {
+    // Purana logic: Centralized withdrawal list (Sabhi users ka ek jagah)
     const unsub = onSnapshot(collection(db, "users"), (snapshot) => {
       let allW = [];
       snapshot.docs.forEach(uDoc => {
@@ -29,6 +30,7 @@ export default function WithdrawalCenter() {
     const snap = await getDoc(userRef);
     let withdrawals = snap.data().withdrawals;
     
+    // Purana logic: Reject par paisa wapas add karna
     if (currentStatus === 'Pending' && newStatus === 'Rejected') {
         await updateDoc(userRef, { walletBalance: increment(parseFloat(amount)) });
     }
@@ -53,6 +55,13 @@ export default function WithdrawalCenter() {
             <p className="text-sm font-black">${w.amount} <span className="text-[9px] font-normal text-gray-500">ID: {w.id}</span></p>
             <p className="text-[10px] text-purple-400 font-bold mt-1">{w.method}</p>
             
+            {/* Details Section */}
+            <div className="text-[9px] text-gray-300 font-mono mt-2 bg-[#050608] p-2 rounded">
+                {w.details && Object.entries(w.details).map(([k, v]) => (
+                  <p key={k} className="capitalize">{k}: <span className="text-white">{v}</span></p>
+                ))}
+            </div>
+
             {w.status === 'Pending' && (
                 <div className="flex gap-2 mt-3">
                   <button onClick={() => updateWithdrawalStatus(w.uid, w.index, w.amount, 'Paid', w.status)} className="bg-emerald-700 flex-1 py-2 rounded text-[10px] font-black">APPROVE</button>
@@ -64,5 +73,4 @@ export default function WithdrawalCenter() {
       </div>
     </div>
   );
-    }
-  
+              }
