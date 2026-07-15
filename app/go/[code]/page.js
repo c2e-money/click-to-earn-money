@@ -1,84 +1,77 @@
 "use client";
 import { useEffect, useState } from "react";
-import Script from "next/script";
+import { useParams, useRouter } from "next/navigation";
 import { db } from "@/lib/firebase";
 import { doc, getDoc, updateDoc, increment } from "firebase/firestore";
+import Script from "next/script";
 
-export default function AdPage({ params }) {
+export default function AdPage() {
+  const { code } = useParams();
+  const [step, setStep] = useState(1);
   const [targetUrl, setTargetUrl] = useState(null);
   const [loading, setLoading] = useState(true);
 
   useEffect(() => {
-    const processClick = async () => {
-      const code = params.code;
-      
-      try {
-        const urlRef = doc(db, "urls", code);
-        const urlSnap = await getDoc(urlRef);
-
-        if (urlSnap.exists()) {
-          const data = urlSnap.data();
-          setTargetUrl(data.originalUrl);
-
-          await updateDoc(urlRef, { clicks: increment(1) });
-
-          // NEW SYSTEM: Check for personal CPM, otherwise fallback to global CPM
-          const userSnap = await getDoc(doc(db, "users", data.userId));
-          const settingsSnap = await getDoc(doc(db, "settings", "global"));
-          
-          const personalCpm = userSnap.data()?.personalCpm;
-          const globalCpm = settingsSnap.exists() ? settingsSnap.data().cpm : 5.00;
-          const cpm = personalCpm ? personalCpm : globalCpm;
-          
-          if (data.userId) {
-              const todayStr = new Date().toLocaleDateString('en-US', { weekday: 'short' }); 
-              
-              await updateDoc(doc(db, "users", data.userId), { 
-                  walletBalance: increment(cpm / 1000),
-                  earnings: increment(cpm / 1000),
-                  clicks: increment(1),
-                  [`dailyClicks.${todayStr}`]: increment(1) 
-              });
-          }
-        }
-      } catch (e) {
-        console.error("Firebase Error:", e);
+    const fetchLink = async () => {
+      const docSnap = await getDoc(doc(db, "urls", code));
+      if (docSnap.exists()) {
+        setTargetUrl(docSnap.data().originalUrl);
       }
       setLoading(false);
     };
+    fetchLink();
+  }, [code]);
 
-    processClick();
-  }, [params.code]);
+  const handleNext = async () => {
+    if (step < 4) {
+      setStep(step + 1);
+    } else {
+      // 4th Step complete: Earnings aur Click count update karo
+      const urlRef = doc(db, "urls", code);
+      const urlSnap = await getDoc(urlRef);
+      const data = urlSnap.data();
 
-  if (loading) {
-    return <div className="min-h-screen bg-[#0b0e14] flex items-center justify-center text-white font-bold">Loading...</div>;
-  }
+      if (data.userId) {
+        const settingsSnap = await getDoc(doc(db, "settings", "global"));
+        const cpm = settingsSnap.exists() ? settingsSnap.data().cpm : 5.00;
+        const earnings = cpm / 1000;
 
-  if (!targetUrl) {
-    return <div className="min-h-screen bg-[#0b0e14] flex items-center justify-center text-white font-bold">Invalid Link or Removed</div>;
-  }
+        await updateDoc(doc(db, "users", data.userId), {
+          walletBalance: increment(earnings),
+          earnings: increment(earnings),
+          clicks: increment(1),
+          [`dailyClicks.${new Date().toLocaleDateString('en-US', { weekday: 'short' })}`]: increment(1)
+        });
+        await updateDoc(urlRef, { clicks: increment(1) });
+      }
 
-  // OLD SYSTEM FULLY RESTORED: Scripts and Verify UI
+      window.location.href = targetUrl;
+    }
+  };
+
+  if (loading) return <div className="min-h-screen bg-[#050608] flex items-center justify-center text-white">Loading...</div>;
+
   return (
-    <div className="min-h-screen bg-[#0b0e14] flex flex-col items-center justify-center p-4">
+    <div className="min-h-screen bg-[#050608] flex flex-col items-center justify-center p-4">
+      {/* Ads Scripts */}
       <Script src="https://rightyrely.com/6c/3d/5e/6c3d5e71fdaab0f2fcbd03525c305b33.js" strategy="lazyOnload" />
-      <Script src="https://rightyrely.com/b594fd33ac3477b8549752f47e5a4e56/invoke.js" strategy="lazyOnload" />
       
-      <div className="bg-[#131722] p-8 rounded-3xl border border-[#1f2937] text-center w-full max-w-md shadow-2xl">
-        <h2 className="text-white text-xl font-black mb-6 uppercase">Verify To Continue</h2>
+      <div className="bg-[#131722] p-8 rounded-3xl border border-[#1f2937] text-center w-full max-w-md">
+        <h2 className="text-white text-lg font-black mb-2 uppercase">Step {step} of 4</h2>
+        <p className="text-gray-500 text-[10px] mb-6">Complete all steps to continue to link.</p>
         
-        <div id="container-b594fd33ac3477b8549752f47e5a4e56" className="w-full min-h-[100px] mb-6 flex justify-center items-center bg-[#0b0e14] rounded-xl overflow-hidden border border-[#1f2937]">
+        {/* Ad Container */}
+        <div id="container-b594fd33ac3477b8549752f47e5a4e56" className="w-full min-h-[250px] mb-6 flex justify-center items-center bg-[#0b0e14] rounded-xl border border-[#1f2937]">
            <span className="text-xs text-gray-600">Ad Loading...</span>
         </div>
 
         <button 
-          onClick={() => window.open(targetUrl, "_self")}
-          className="w-full bg-gradient-to-r from-emerald-500 to-green-600 py-4 rounded-xl font-black text-white shadow-lg active:scale-95 transition-transform uppercase"
+          onClick={handleNext}
+          className="w-full bg-purple-600 py-4 rounded-xl font-black text-white active:scale-95 transition-transform uppercase text-sm"
         >
-          CONTINUE TO LINK
+          {step === 4 ? "GET LINK" : "NEXT STEP"}
         </button>
       </div>
     </div>
   );
 }
-  
