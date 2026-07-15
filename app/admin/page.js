@@ -1,7 +1,7 @@
 "use client";
 import { useState, useEffect } from "react";
 import { db } from "@/lib/firebase";
-import { collection, onSnapshot, doc, updateDoc, setDoc, getDoc } from "firebase/firestore";
+import { collection, onSnapshot, doc, updateDoc, setDoc, getDoc, increment } from "firebase/firestore";
 
 export default function AdminPage() {
   const [withdrawals, setWithdrawals] = useState([]);
@@ -13,10 +13,8 @@ export default function AdminPage() {
   useEffect(() => {
     if (!isAdmin) return;
 
-    // Global CPM Fetch
     getDoc(doc(db, "settings", "global")).then(s => s.exists() && setGlobalCpm(s.data().cpm));
 
-    // LIVE centralized withdrawal listener
     const unsub = onSnapshot(collection(db, "users"), (snapshot) => {
       let allW = [];
       snapshot.docs.forEach(uDoc => {
@@ -32,13 +30,22 @@ export default function AdminPage() {
     return () => unsub();
   }, [isAdmin]);
 
-  const updateWithdrawalStatus = async (uid, index, newStatus) => {
+  // NAYA LOGIC: Status update ke saath Balance wapas add karna
+  const updateWithdrawalStatus = async (uid, index, amount, newStatus, currentStatus) => {
     const userRef = doc(db, "users", uid);
     const snap = await getDoc(userRef);
     let withdrawals = snap.data().withdrawals;
+    
+    // Agar pehle 'Pending' tha aur ab 'Rejected' kar rahe hain, toh paisa return karo
+    if (currentStatus === 'Pending' && newStatus === 'Rejected') {
+        await updateDoc(userRef, {
+            walletBalance: increment(parseFloat(amount))
+        });
+    }
+
     withdrawals[index].status = newStatus;
     await updateDoc(userRef, { withdrawals: withdrawals });
-    alert("Status Saved Successfully!");
+    alert("Status Updated & Balance Handled!");
   };
 
   if (!isAdmin) {
@@ -57,7 +64,7 @@ export default function AdminPage() {
   return (
     <div className="p-4 bg-[#050608] min-h-screen text-white pb-20">
       <h1 className="text-center font-black text-purple-500 mb-6 uppercase">Withdrawal Center</h1>
-
+      
       {/* Global CPM */}
       <div className="bg-[#0b0e14] p-4 rounded-xl border border-purple-500 mb-6">
         <p className="text-[10px] font-black text-purple-300">GLOBAL CPM</p>
@@ -67,25 +74,26 @@ export default function AdminPage() {
         </div>
       </div>
 
-      {/* Centralized Withdrawals */}
       <div className="space-y-4">
         {withdrawals.map((w, i) => (
           <div key={i} className="bg-[#0b0e14] p-4 rounded-2xl border border-[#1f2937]">
             <div className="flex justify-between items-center mb-2">
                 <span className="text-[10px] font-bold text-gray-400">{w.userEmail}</span>
-                <span className={`text-[9px] font-black px-2 py-0.5 rounded ${w.status === 'Paid' ? 'bg-emerald-900 text-emerald-400' : 'bg-yellow-900 text-yellow-400'}`}>{w.status}</span>
+                <span className={`text-[9px] font-black px-2 py-0.5 rounded ${w.status === 'Paid' ? 'bg-emerald-900 text-emerald-400' : w.status === 'Rejected' ? 'bg-red-900 text-red-400' : 'bg-yellow-900 text-yellow-400'}`}>{w.status}</span>
             </div>
             <p className="text-sm font-black">${w.amount} <span className="text-[9px] font-normal text-gray-500">ID: {w.id}</span></p>
             <p className="text-[10px] text-purple-400 font-bold mt-1">{w.method}</p>
             
-            <div className="flex gap-2 mt-3">
-              <button onClick={() => updateWithdrawalStatus(w.uid, w.index, 'Paid')} className="bg-emerald-700 flex-1 py-2 rounded text-[10px] font-black">APPROVE</button>
-              <button onClick={() => updateWithdrawalStatus(w.uid, w.index, 'Rejected')} className="bg-red-700 flex-1 py-2 rounded text-[10px] font-black">REJECT</button>
-            </div>
+            {w.status === 'Pending' && (
+                <div className="flex gap-2 mt-3">
+                  <button onClick={() => updateWithdrawalStatus(w.uid, w.index, w.amount, 'Paid', w.status)} className="bg-emerald-700 flex-1 py-2 rounded text-[10px] font-black">APPROVE</button>
+                  <button onClick={() => updateWithdrawalStatus(w.uid, w.index, w.amount, 'Rejected', w.status)} className="bg-red-700 flex-1 py-2 rounded text-[10px] font-black">REJECT</button>
+                </div>
+            )}
           </div>
         ))}
       </div>
     </div>
   );
-        }
-          
+  }
+                         
