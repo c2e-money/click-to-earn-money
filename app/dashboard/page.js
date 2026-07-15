@@ -11,7 +11,20 @@ export default function Dashboard() {
   const [url, setUrl] = useState("");
   const [alias, setAlias] = useState("");
   const [generatedLink, setGeneratedLink] = useState(null);
-  const [isGenerating, setIsGenerating] = useState(false); // NAYA LOADING STATE
+  const [isGenerating, setIsGenerating] = useState(false);
+  
+  // Graph ke liye week data
+  const [todayIndex, setTodayIndex] = useState(0);
+  const weekLabels = ["Mon", "Tue", "Wed", "Thu", "Fri", "Sat", "Sun"];
+  
+  // Past days ke liye dummy heights (Taaki dashboard khali na lage)
+  const dummyPastData = [30, 60, 45, 85, 50, 75, 65]; 
+
+  // Set Today Index on Mount (0 = Mon, 6 = Sun)
+  useEffect(() => {
+    const day = new Date().getDay();
+    setTodayIndex(day === 0 ? 6 : day - 1);
+  }, []);
 
   // Authentication Check
   useEffect(() => {
@@ -42,12 +55,11 @@ export default function Dashboard() {
     if (!user?.uid) return alert("Login required!");
     if (!url) return alert("Enter URL");
     
-    setIsGenerating(true); // LOADING START
+    setIsGenerating(true); 
     
     try {
       const code = alias || Math.random().toString(36).substring(7);
       
-      // Using setDoc to match the exact generated code
       await setDoc(doc(db, "urls", code), {
         originalUrl: url.startsWith('http') ? url : `https://${url}`,
         code: code,
@@ -62,7 +74,7 @@ export default function Dashboard() {
     } catch (e) { 
       alert(e.message); 
     } finally {
-      setIsGenerating(false); // LOADING STOP (chahe success ho ya error)
+      setIsGenerating(false); 
     }
   };
 
@@ -110,7 +122,6 @@ export default function Dashboard() {
             onChange={(e) => setAlias(e.target.value)} 
           />
           
-          {/* UPDATED BUTTON WITH LOADING STATE */}
           <button 
             onClick={generateLink} 
             disabled={isGenerating}
@@ -142,14 +153,13 @@ export default function Dashboard() {
           )}
         </div>
 
-        {/* Dynamic Up-Down Traffic Analysis Section */}
+        {/* Weekly Traffic Analysis Section */}
         <div className="bg-[#0b0e14] p-5 rounded-3xl border border-[#1f2937] mt-6 shadow-xl relative overflow-hidden">
-          {/* Subtle background glow for premium look */}
           <div className="absolute -top-10 -right-10 w-32 h-32 bg-purple-600/5 rounded-full blur-3xl pointer-events-none"></div>
 
-          <h2 className="text-[10px] font-black uppercase mb-4 italic text-gray-500">Traffic Analysis (7 Days)</h2>
+          <h2 className="text-[10px] font-black uppercase mb-4 italic text-gray-500">This Week's Traffic</h2>
           
-          {data.clicks > 0 ? (
+          {data.clicks >= 0 && (
             <div className="space-y-4 relative z-10">
               <div className="flex justify-between items-end">
                 <div>
@@ -158,46 +168,64 @@ export default function Dashboard() {
                 </div>
                 <div className="text-right">
                   <p className="text-[9px] text-gray-500 uppercase font-bold">Status</p>
-                  <p className="text-xs font-bold text-emerald-400 animate-pulse">● Live</p>
+                  <p className={`text-xs font-bold ${data.clicks > 0 ? 'text-emerald-400 animate-pulse' : 'text-gray-500'}`}>
+                    {data.clicks > 0 ? '● Live' : 'No Traffic'}
+                  </p>
                 </div>
               </div>
               
-              {/* CSS Up-Down Bar Graph */}
+              {/* CSS Bar Graph (Mon to Sun) */}
               <div className="flex items-end justify-between h-24 gap-1.5 mt-4 border-b border-[#1f2937] pb-1">
-                {[30, 60, 45, 85, 50, 75, Math.min(Math.max(data.clicks, 15), 100)].map((height, index) => (
-                  <div key={index} className="w-full flex flex-col justify-end items-center h-full group">
-                    <div
-                      className={`w-full rounded-t-sm transition-all duration-1000 ease-out ${
-                        index === 6
-                          ? "bg-gradient-to-t from-emerald-600 to-emerald-400 shadow-[0_-2px_10px_rgba(16,185,129,0.3)]" // Today's real traffic (Green)
-                          : "bg-gradient-to-t from-[#1f2937] to-purple-900/40 group-hover:to-purple-600/60" // Previous days (Purple)
-                      }`}
-                      style={{ height: `${height}%` }}
-                    ></div>
-                  </div>
-                ))}
+                {weekLabels.map((_, index) => {
+                  const isPast = index < todayIndex;
+                  const isToday = index === todayIndex;
+                  const isFuture = index > todayIndex;
+                  
+                  // EXACT HEIGHT CALCULATION FIX: 1 Click = 1% (Maximum 100%)
+                  let height = 0;
+                  if (isPast) height = dummyPastData[index];
+                  if (isToday) height = Math.min(data.clicks, 100); 
+
+                  return (
+                    <div key={index} className="w-full flex flex-col justify-end items-center h-full group">
+                      {!isFuture && (
+                        <div
+                          className={`w-full rounded-t-sm transition-all duration-1000 ease-out ${
+                            isToday
+                              ? "bg-gradient-to-t from-emerald-600 to-emerald-400 shadow-[0_-2px_10px_rgba(16,185,129,0.3)]"
+                              : "bg-gradient-to-t from-[#1f2937] to-purple-900/40 group-hover:to-purple-600/60"
+                          }`}
+                          style={{ height: `${height}%` }}
+                        ></div>
+                      )}
+                    </div>
+                  );
+                })}
               </div>
               
-              {/* Graph X-Axis Labels */}
-              <div className="flex justify-between text-[8px] text-gray-600 font-bold uppercase px-1">
-                <span>Mon</span>
-                <span>Tue</span>
-                <span>Wed</span>
-                <span>Thu</span>
-                <span>Fri</span>
-                <span>Sat</span>
-                <span className="text-emerald-500">Today</span>
+              {/* Graph X-Axis Labels (Mon to Sun) */}
+              <div className="flex justify-between text-[8px] font-bold uppercase px-1">
+                {weekLabels.map((label, index) => {
+                  const isToday = index === todayIndex;
+                  const isFuture = index > todayIndex;
+                  
+                  return (
+                    <span 
+                      key={index} 
+                      className={`${isToday ? "text-emerald-500" : isFuture ? "text-[#1f2937]" : "text-gray-600"}`}
+                    >
+                      {isToday ? "Today" : label}
+                    </span>
+                  );
+                })}
               </div>
             </div>
-          ) : (
-            <div className="text-center text-[10px] text-gray-700 py-4 italic font-bold">No traffic yet</div>
           )}
         </div>
       </main>
 
-      {/* Bottom Navbar */}
       <Navbar active="home" />
     </div>
   );
-              }
-                  
+  }
+              
