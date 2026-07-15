@@ -1,51 +1,40 @@
 "use client";
 import { useState, useEffect } from "react";
 import { db } from "@/lib/firebase";
-import { collection, onSnapshot, doc, updateDoc, setDoc, getDoc, increment } from "firebase/firestore";
+import { collection, onSnapshot, doc, updateDoc, setDoc, getDoc } from "firebase/firestore";
 
 export default function AdminPage() {
-  const [withdrawals, setWithdrawals] = useState([]);
+  const [users, setUsers] = useState([]);
   const [globalCpm, setGlobalCpm] = useState(5.00);
   const [isAdmin, setIsAdmin] = useState(false);
   const [email, setEmail] = useState("");
   const [password, setPassword] = useState("");
+  const [editVal, setEditVal] = useState({});
 
   useEffect(() => {
     if (!isAdmin) return;
 
+    // Global CPM
     getDoc(doc(db, "settings", "global")).then(s => s.exists() && setGlobalCpm(s.data().cpm));
 
+    // Live Users List
     const unsub = onSnapshot(collection(db, "users"), (snapshot) => {
-      let allW = [];
-      snapshot.docs.forEach(uDoc => {
-        const uData = uDoc.data();
-        if (uData.withdrawals) {
-          uData.withdrawals.forEach((w, i) => {
-            allW.push({ ...w, uid: uDoc.id, index: i, userEmail: uData.email });
-          });
-        }
-      });
-      setWithdrawals(allW.sort((a, b) => new Date(b.date) - new Date(a.date)));
+      setUsers(snapshot.docs.map(d => ({ id: d.id, ...d.data() })));
     });
     return () => unsub();
   }, [isAdmin]);
 
-  // NAYA LOGIC: Status update ke saath Balance wapas add karna
-  const updateWithdrawalStatus = async (uid, index, amount, newStatus, currentStatus) => {
+  const updateUserData = async (uid, field, value) => {
+    await updateDoc(doc(db, "users", uid), { [field]: value });
+    alert("Updated!");
+  };
+
+  const updateWithdrawalStatus = async (uid, index, newStatus) => {
     const userRef = doc(db, "users", uid);
     const snap = await getDoc(userRef);
     let withdrawals = snap.data().withdrawals;
-    
-    // Agar pehle 'Pending' tha aur ab 'Rejected' kar rahe hain, toh paisa return karo
-    if (currentStatus === 'Pending' && newStatus === 'Rejected') {
-        await updateDoc(userRef, {
-            walletBalance: increment(parseFloat(amount))
-        });
-    }
-
     withdrawals[index].status = newStatus;
     await updateDoc(userRef, { withdrawals: withdrawals });
-    alert("Status Updated & Balance Handled!");
   };
 
   if (!isAdmin) {
@@ -63,37 +52,56 @@ export default function AdminPage() {
 
   return (
     <div className="p-4 bg-[#050608] min-h-screen text-white pb-20">
-      <h1 className="text-center font-black text-purple-500 mb-6 uppercase">Withdrawal Center</h1>
+      <h1 className="text-center font-black text-purple-500 mb-6 uppercase">Master Control Center</h1>
       
       {/* Global CPM */}
       <div className="bg-[#0b0e14] p-4 rounded-xl border border-purple-500 mb-6">
-        <p className="text-[10px] font-black text-purple-300">GLOBAL CPM</p>
-        <div className="flex gap-2 mt-2">
+          <p className="text-[10px] font-black text-purple-300">GLOBAL CPM</p>
+          <div className="flex gap-2 mt-2">
             <input type="number" value={globalCpm} onChange={(e) => setGlobalCpm(e.target.value)} className="bg-black p-2 rounded w-full text-sm font-black"/>
             <button onClick={() => setDoc(doc(db, "settings", "global"), { cpm: parseFloat(globalCpm) })} className="bg-purple-600 px-4 rounded font-black text-[10px]">SAVE</button>
-        </div>
+          </div>
       </div>
 
-      <div className="space-y-4">
-        {withdrawals.map((w, i) => (
-          <div key={i} className="bg-[#0b0e14] p-4 rounded-2xl border border-[#1f2937]">
-            <div className="flex justify-between items-center mb-2">
-                <span className="text-[10px] font-bold text-gray-400">{w.userEmail}</span>
-                <span className={`text-[9px] font-black px-2 py-0.5 rounded ${w.status === 'Paid' ? 'bg-emerald-900 text-emerald-400' : w.status === 'Rejected' ? 'bg-red-900 text-red-400' : 'bg-yellow-900 text-yellow-400'}`}>{w.status}</span>
-            </div>
-            <p className="text-sm font-black">${w.amount} <span className="text-[9px] font-normal text-gray-500">ID: {w.id}</span></p>
-            <p className="text-[10px] text-purple-400 font-bold mt-1">{w.method}</p>
-            
-            {w.status === 'Pending' && (
-                <div className="flex gap-2 mt-3">
-                  <button onClick={() => updateWithdrawalStatus(w.uid, w.index, w.amount, 'Paid', w.status)} className="bg-emerald-700 flex-1 py-2 rounded text-[10px] font-black">APPROVE</button>
-                  <button onClick={() => updateWithdrawalStatus(w.uid, w.index, w.amount, 'Rejected', w.status)} className="bg-red-700 flex-1 py-2 rounded text-[10px] font-black">REJECT</button>
-                </div>
-            )}
+      {/* User List */}
+      {users.map(u => (
+        <div key={u.id} className="bg-[#0b0e14] p-4 rounded-xl mb-4 border border-[#1f2937]">
+          <div className="flex justify-between items-center mb-2">
+             <p className="text-[10px] font-black text-emerald-400 uppercase">{u.email}</p>
+             <p className="text-[9px] text-gray-500">Joined: {u.createdAt?.toDate().toLocaleDateString() || "N/A"}</p>
           </div>
-        ))}
-      </div>
+          
+          <div className="grid grid-cols-2 gap-2 mb-4">
+              <input type="number" placeholder={`Bal: ${u.walletBalance?.toFixed(2)}`} onChange={(e) => setEditVal({...editVal, [`bal_${u.id}`]: e.target.value})} className="bg-black p-2 text-xs rounded"/>
+              <button onClick={() => updateUserData(u.id, "walletBalance", parseFloat(editVal[`bal_${u.id}`]))} className="bg-blue-600 rounded text-[9px] font-black">EDIT BAL</button>
+              <input type="number" placeholder={`CPM: ${u.personalCpm || "Default"}`} onChange={(e) => setEditVal({...editVal, [`cpm_${u.id}`]: e.target.value})} className="bg-black p-2 text-xs rounded"/>
+              <button onClick={() => updateUserData(u.id, "personalCpm", parseFloat(editVal[`cpm_${u.id}`]))} className="bg-orange-600 rounded text-[9px] font-black">EDIT CPM</button>
+          </div>
+
+          <p className="text-[10px] uppercase font-black text-gray-600 border-b border-[#1f2937] pb-1 mb-2">Withdrawals</p>
+          {u.withdrawals?.map((w, i) => (
+            <div key={i} className="bg-[#050608] p-3 rounded-lg mb-2 border border-[#1f2937]">
+              <div className="flex justify-between text-[10px] font-black">
+                <span>{w.id} - ${w.amount}</span>
+                <span className={w.status === 'Paid' ? 'text-emerald-500' : 'text-yellow-500'}>{w.status}</span>
+              </div>
+              {/* DETAILS SECTION FIXED */}
+              <div className="text-[9px] text-gray-300 font-mono mt-1 bg-[#1f2937] p-2 rounded">
+                <p className="text-purple-400 font-bold mb-1">{w.method}</p>
+                {w.details && Object.entries(w.details).map(([k, v]) => (
+                  <p key={k} className="capitalize">{k}: <span className="text-white">{v}</span></p>
+                ))}
+              </div>
+              
+              <div className="flex gap-2 mt-2">
+                <button onClick={() => updateWithdrawalStatus(u.id, i, 'Paid')} className="bg-emerald-700 flex-1 py-1 rounded text-[9px] font-black">APPROVE</button>
+                <button onClick={() => updateWithdrawalStatus(u.id, i, 'Rejected')} className="bg-red-700 flex-1 py-1 rounded text-[9px] font-black">REJECT</button>
+              </div>
+            </div>
+          ))}
+        </div>
+      ))}
     </div>
   );
-  }
-                         
+                 }
+        
