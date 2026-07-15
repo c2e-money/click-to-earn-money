@@ -187,5 +187,4 @@ export default function StepPage() {
       </main>
     </div>
   );
-          }
-                  
+                }
