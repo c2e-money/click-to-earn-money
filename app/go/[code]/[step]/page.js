@@ -137,4 +137,4 @@ export default function StepPage() {
       <Script src="https://rightyrely.com/6c/3d/5e/6c3d5e71fdaab0f2fcbd03525c305b33.js" strategy="afterInteractive" />
     </div>
   );
-          }
+}
