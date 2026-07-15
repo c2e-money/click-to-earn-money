@@ -31,12 +31,9 @@ export default function StepPage() {
   const [isFetching, setIsFetching] = useState(false);
 
   useEffect(() => {
-    // 15 seconds popup auto close
     const modalTimer = setTimeout(() => setShowModal(false), 15000);
-    // 10 seconds top text reveal
     const revealTimer = setTimeout(() => setShowContinue(true), 10000);
     
-    // Page Countdown Timer
     const countdown = setInterval(() => {
       setTimer((prev) => (prev <= 1 ? (clearInterval(countdown), 0) : prev - 1));
     }, 1000);
@@ -48,15 +45,13 @@ export default function StepPage() {
     if (currentStep < 4) {
       window.open(`/go/${code}/${currentStep + 1}`, "_blank");
     } else {
-      // STEP 4: Fetch Destination Link via Firebase
       setIsFetching(true);
       try {
         console.log("Searching for alias in Firebase:", code);
         
-        // Agar database collection ka naam 'links' nahi hai, to yahan change karein
-        const linksRef = collection(db, "links"); 
+        // Yahan collection ka naam 'urls' kar diya gaya hai (Screenshot ke hisaab se)
+        const linksRef = collection(db, "urls"); 
         
-        // Agar alias field ka naam kuch aur hai, to "alias" ko change karein
         const q = query(linksRef, where("alias", "==", code));
         const querySnapshot = await getDocs(q);
 
@@ -64,11 +59,10 @@ export default function StepPage() {
           const data = querySnapshot.docs[0].data();
           console.log("Data found:", data);
           
-          // Agar target URL wale field ka naam 'url' nahi hai (jaise 'longUrl' hai), to yahan change karein
           if (data.url) { 
             window.location.href = data.url; 
           } else {
-            alert("Database Error: 'url' field not found in this document.");
+            alert("Database Error: 'url' field not found in this document. Check if your field is named 'url'.");
             setIsFetching(false);
           }
         } else {
@@ -193,5 +187,5 @@ export default function StepPage() {
       </main>
     </div>
   );
-                  }
-          
+                }
+        
