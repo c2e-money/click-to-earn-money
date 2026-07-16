@@ -1,4 +1,3 @@
-
 "use client";
 import { useEffect, useState } from "react";
 import { useParams, useRouter } from "next/navigation";
@@ -6,7 +5,8 @@ import Script from "next/script";
 
 // --- FIREBASE IMPORT & CONFIG ---
 import { initializeApp, getApps, getApp } from "firebase/app";
-import { getFirestore, doc, getDoc, collection, query, where, getDocs } from "firebase/firestore";
+// Yahan updateDoc aur increment add kiya gaya hai
+import { getFirestore, doc, getDoc, collection, query, where, getDocs, updateDoc, increment } from "firebase/firestore";
 
 const firebaseConfig = {
   apiKey: "AIzaSyD3Yl0BR4o6qEX6MeXYjX6Qjlr5BCid5C8",
@@ -17,7 +17,7 @@ const firebaseConfig = {
   appId: "1:78108710064:web:7b5e79f33721fbc7f71775"
 };
 
-// FIX 1: Next.js safe Firebase Initialization (Prevents "App already exists" error)
+// Next.js safe Firebase Initialization
 const app = !getApps().length ? initializeApp(firebaseConfig) : getApp();
 const db = getFirestore(app);
 // --------------------------------
@@ -33,12 +33,9 @@ export default function StepPage() {
   const [isFetching, setIsFetching] = useState(false);
 
   useEffect(() => {
-    // 15 seconds popup auto close
     const modalTimer = setTimeout(() => setShowModal(false), 15000);
-    // 10 seconds top text reveal
     const revealTimer = setTimeout(() => setShowContinue(true), 10000);
     
-    // Page Countdown Timer
     const countdown = setInterval(() => {
       setTimer((prev) => (prev <= 1 ? (clearInterval(countdown), 0) : prev - 1));
     }, 1000);
@@ -54,6 +51,7 @@ export default function StepPage() {
       try {
         console.log("Searching for URL with ID/Alias:", code);
         let destinationUrl = null;
+        let targetDocRef = null; // Document ka reference save karne ke liye
 
         // METHOD 1: Search by Document ID
         const docRef = doc(db, "urls", code);
@@ -61,6 +59,7 @@ export default function StepPage() {
         
         if (docSnap.exists() && docSnap.data().originalUrl) {
           destinationUrl = docSnap.data().originalUrl;
+          targetDocRef = docRef; // Ref save kar liya
         }
 
         // METHOD 2: Search in 'code' field if Document ID fails
@@ -69,6 +68,7 @@ export default function StepPage() {
           const snapCode = await getDocs(qCode);
           if (!snapCode.empty && snapCode.docs[0].data().originalUrl) {
             destinationUrl = snapCode.docs[0].data().originalUrl;
+            targetDocRef = snapCode.docs[0].ref; // Ref save kar liya
           }
         }
 
@@ -78,21 +78,33 @@ export default function StepPage() {
           const snapAlias = await getDocs(qAlias);
           if (!snapAlias.empty && snapAlias.docs[0].data().originalUrl) {
             destinationUrl = snapAlias.docs[0].data().originalUrl;
+            targetDocRef = snapAlias.docs[0].ref; // Ref save kar liya
           }
         }
 
-        // FINAL REDIRECTION
-        if (destinationUrl) {
+        // FINAL REDIRECTION & CLICK UPDATE
+        if (destinationUrl && targetDocRef) {
+          
+          // ---> CLICK COUNT +1 UPDATE LOGIC <---
+          try {
+            await updateDoc(targetDocRef, {
+              clicks: increment(1)
+            });
+            console.log("Click count updated successfully!");
+          } catch (updateError) {
+            console.error("Failed to update clicks:", updateError);
+          }
+          // --------------------------------------
+
+          // User ko destination link par bhejo
           window.location.href = destinationUrl;
         } else {
-          // Agar ab link nahi milti toh alert me clear reason aayega
           alert(`Link nahi mili! Please check karein ki "${code}" aapke database me save hai ya nahi.`);
           setIsFetching(false);
         }
 
       } catch (error) {
         console.error("Firebase Search Error:", error);
-        // FIX 2: Exact error message screen par dikhega
         alert("System Error: " + error.message);
         setIsFetching(false);
       }
@@ -197,5 +209,4 @@ export default function StepPage() {
       </main>
     </div>
   );
-    }
-          
+}
