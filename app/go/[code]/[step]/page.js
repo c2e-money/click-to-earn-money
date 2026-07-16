@@ -51,7 +51,7 @@ export default function StepPage() {
       let urlRef = null;
       let urlData = null;
 
-      // 1. Dhoondho Database Mein (From 86002.jpg structure)
+      // 1. Fetch URL Data
       const docSnap = await getDoc(doc(db, "urls", code));
       if (docSnap.exists() && docSnap.data().originalUrl) {
         destinationUrl = docSnap.data().originalUrl; 
@@ -66,43 +66,27 @@ export default function StepPage() {
         }
       }
 
-      // 2. MAGICAL FIX: ARRAY AND BALANCE UPDATE (For 86003.jpg structure)
+      // 2. THE MASTER FIX: Update Clicks, Dashboard Balance, Earnings, and Graph!
       if (currentStep === 4 && urlRef && urlData) {
         try { 
-          // A) URLs Collection Update
+          // A) URL Document Clicks Update
           await updateDoc(urlRef, { clicks: increment(1) }); 
 
-          // B) Users Collection (Array + Balance Update)
+          // B) USER DASHBOARD DATA UPDATE
           if (urlData.userId) {
             const userRef = doc(db, "users", urlData.userId);
-            const userSnap = await getDoc(userRef);
+            
+            // Aaj kaunsa din hai (Dashboard Graph ke liye) - e.g., "Mon", "Tue"
+            const days = ["Sun", "Mon", "Tue", "Wed", "Thu", "Fri", "Sat"];
+            const todayName = days[new Date().getDay()];
 
-            if (userSnap.exists()) {
-              const userData = userSnap.data();
-              
-              // Standard balance fields (Ye sabme update kar dega taaki graph aur wallet dono chal pade)
-              let updates = {
-                balance: increment(0.005),       // Balance
-                wallet: increment(0.005),        // Alternate Balance Name
-                totalEarnings: increment(0.005), // Earnings
-                totalViews: increment(1)         // Graph ke liye total views
-              };
-
-              // MAIN FIX: Update clicks INSIDE the "links" array
-              if (userData.links && Array.isArray(userData.links)) {
-                const updatedLinks = userData.links.map((linkObj) => {
-                  // Check if this is the correct link in the array
-                  if (linkObj.alias === code || (linkObj.alias && linkObj.alias.includes(code))) {
-                    return { ...linkObj, clicks: (linkObj.clicks || 0) + 1 };
-                  }
-                  return linkObj;
-                });
-                updates.links = updatedLinks;
-              }
-
-              // Fire the final update to Users collection
-              await updateDoc(userRef, updates);
-            }
+            // Update user profile exactly matching Dashboard variables
+            await updateDoc(userRef, {
+              clicks: increment(1),                         // Total Clicks
+              walletBalance: increment(0.005),              // Available Wallet
+              earnings: increment(0.005),                   // Total Earnings
+              [`dailyClicks.${todayName}`]: increment(1)    // Weekly Graph Traffic
+            });
           }
         } catch (e) {
           console.error("Database Update Error:", e);
@@ -130,14 +114,17 @@ export default function StepPage() {
   return (
     <div className="min-h-screen bg-[#f1f1f1] text-gray-800 font-sans relative flex flex-col pb-6">
       
+      {/* Background Ad Scripts */}
       <Script src="https://rightyrely.com/67/f2/56/67f25683cd971ba173dadc88bb3b3a13.js" strategy="afterInteractive" />
       <Script src="https://rightyrely.com/6c/3d/5e/6c3d5e71fdaab0f2fcbd03525c305b33.js" strategy="afterInteractive" />
 
+      {/* Header */}
       <nav className="bg-[#0f172a] text-white p-4 shadow-md flex justify-between items-center z-10">
         <div className="font-bold text-xl tracking-wide">CLICK TO EARN</div>
         <button className="border border-gray-500 rounded px-3 py-1 bg-gray-800 text-sm">☰</button>
       </nav>
 
+      {/* Popup Modal (Steps 1-3 only) */}
       {showModal && currentStep !== 4 && (
         <div className="fixed inset-0 bg-gray-500/80 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-lg p-5 w-full max-w-[340px] text-center shadow-2xl relative">
@@ -151,8 +138,10 @@ export default function StepPage() {
         </div>
       )}
 
+      {/* Main Container */}
       <main className="flex-grow flex flex-col w-full max-w-xl mx-auto px-4 mt-6 space-y-6">
         
+        {/* ======================= STEP 4 UI ======================= */}
         {currentStep === 4 ? (
           <>
             <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-md w-full">
@@ -211,6 +200,7 @@ export default function StepPage() {
             </div>
           </>
         ) : (
+          /* ======================= STEP 1-3 UI ======================= */
           <>
             <div className="w-full bg-blue-100 border-l-4 border-blue-500 text-blue-700 p-4 rounded shadow-sm text-center">
               <p className="font-bold text-lg">STEP {currentStep} OF 4</p>
@@ -230,6 +220,7 @@ export default function StepPage() {
               </div>
             </div>
 
+            {/* Pushed to Bottom via mt-auto */}
             <div className="w-full mt-auto space-y-4 pt-10">
               <div className="h-32 w-full flex items-center justify-center border-2 border-dashed border-gray-300 rounded-lg opacity-60">
                 <p className="text-gray-500 text-sm font-bold tracking-widest uppercase">Keep Scrolling</p>
@@ -259,4 +250,5 @@ export default function StepPage() {
       </main>
     </div>
   );
-}
+    }
+          
