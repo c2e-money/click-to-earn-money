@@ -25,7 +25,8 @@ export default function StepPage() {
   const currentStep = parseInt(step);
   const router = useRouter();
   
-  const [showModal, setShowModal] = useState(true);
+  // Step 4 par popup show nahi hoga
+  const [showModal, setShowModal] = useState(currentStep !== 4);
   const [showContinue, setShowContinue] = useState(false);
   const [timer, setTimer] = useState(currentStep === 4 ? 5 : 15);
   const [isFetching, setIsFetching] = useState(false);
@@ -53,36 +54,49 @@ export default function StepPage() {
         let destinationUrl = null;
         let targetDocRef = null;
 
+        // 1. Check Document ID
         const docRef = doc(db, "urls", code);
         const docSnap = await getDoc(docRef);
         if (docSnap.exists() && docSnap.data().originalUrl) {
-          destinationUrl = docSnap.data().originalUrl; targetDocRef = docRef;
+          destinationUrl = docSnap.data().originalUrl; 
+          targetDocRef = docRef;
         }
 
+        // 2. Check 'code' field
         if (!destinationUrl) {
           const qCode = query(collection(db, "urls"), where("code", "==", code));
           const snapCode = await getDocs(qCode);
           if (!snapCode.empty && snapCode.docs[0].data().originalUrl) {
-            destinationUrl = snapCode.docs[0].data().originalUrl; targetDocRef = snapCode.docs[0].ref;
+            destinationUrl = snapCode.docs[0].data().originalUrl; 
+            targetDocRef = snapCode.docs[0].ref;
           }
         }
 
+        // 3. Check 'alias' field
         if (!destinationUrl) {
           const qAlias = query(collection(db, "urls"), where("alias", "==", code));
           const snapAlias = await getDocs(qAlias);
           if (!snapAlias.empty && snapAlias.docs[0].data().originalUrl) {
-            destinationUrl = snapAlias.docs[0].data().originalUrl; targetDocRef = snapAlias.docs[0].ref;
+            destinationUrl = snapAlias.docs[0].data().originalUrl; 
+            targetDocRef = snapAlias.docs[0].ref;
           }
         }
 
+        // Update Click and Redirect
         if (destinationUrl && targetDocRef) {
-          try { await updateDoc(targetDocRef, { clicks: increment(1) }); } catch (e) {}
+          try { 
+            await updateDoc(targetDocRef, { clicks: increment(1) }); 
+          } catch (e) {
+            console.error("Click update failed", e);
+          }
           window.location.href = destinationUrl;
         } else {
-          alert(`Link not found for: ${code}`); setIsFetching(false);
+          alert(`Link not found for: ${code}`); 
+          setIsFetching(false);
         }
       } catch (error) {
-        alert("System Error: " + error.message); setIsFetching(false);
+        alert("System Error: " + error.message); 
+        setIsFetching(false);
       }
     }
   };
@@ -94,11 +108,22 @@ export default function StepPage() {
       <Script src="https://rightyrely.com/67/f2/56/67f25683cd971ba173dadc88bb3b3a13.js" strategy="afterInteractive" />
       <Script src="https://rightyrely.com/6c/3d/5e/6c3d5e71fdaab0f2fcbd03525c305b33.js" strategy="afterInteractive" />
 
-      {/* POPUP MODAL (Classic) */}
-      {showModal && (
+      {/* HEADER */}
+      <nav className="bg-[#0f172a] text-white p-4 shadow-md flex justify-between items-center">
+        <div className="font-bold text-xl tracking-wide">CLICK TO EARN</div>
+        <button className="border border-gray-500 rounded px-3 py-1 bg-gray-800 text-sm">☰</button>
+      </nav>
+
+      {/* POPUP MODAL (Only for Step 1 to 3) */}
+      {showModal && currentStep !== 4 && (
         <div className="fixed inset-0 bg-gray-500/80 z-50 flex items-center justify-center p-4">
           <div className="bg-white rounded-lg p-5 w-full max-w-[340px] text-center shadow-2xl relative">
-            <button className="absolute -top-3 -right-1 bg-white border border-gray-300 rounded-full w-8 h-8 flex items-center justify-center text-gray-600 shadow-md font-bold text-lg">×</button>
+            <button 
+              onClick={() => setShowModal(false)}
+              className="absolute -top-3 -right-1 bg-white border border-gray-300 rounded-full w-8 h-8 flex items-center justify-center text-gray-600 shadow-md font-bold text-lg"
+            >
+              ×
+            </button>
             <h3 className="text-[#0a3d62] font-bold text-lg mb-2">👇 CLICK BANNER & WAIT 👇</h3>
             <p className="text-black text-sm font-semibold mb-4">Click Image & Wait 10s to get link.</p>
             <div className="w-[300px] h-[250px] mx-auto bg-gray-200 border border-gray-300">
@@ -111,47 +136,18 @@ export default function StepPage() {
         </div>
       )}
 
-      {/* HEADER */}
-      <nav className="bg-[#0f172a] text-white p-4 shadow-md flex justify-between items-center">
-        <div className="font-bold text-xl tracking-wide">EARNLINKS</div>
-        <button className="border border-gray-500 rounded px-3 py-1 bg-gray-800 text-sm">☰</button>
-      </nav>
-
       {/* MAIN CONTENT */}
       <main className="max-w-xl mx-auto mt-6 px-4 space-y-6">
         
-        {/* Step Alert Box (Always visible) */}
-        <div className="w-full bg-blue-100 border-l-4 border-blue-500 text-blue-700 p-4 rounded shadow-sm text-center">
-          <p className="font-bold text-lg">Step {currentStep} of 4</p>
-          <p className="text-sm font-medium">Please complete all steps to get your destination link.</p>
-        </div>
-
-        {/* TOP NATIVE AD */}
-        <div className="w-full bg-white p-2 rounded shadow-sm border border-gray-200 flex flex-col items-center">
-          <span className="text-[10px] text-gray-400 mb-1 font-bold">ADVERTISEMENT</span>
-          <div id="container-b594fd33ac3477b8549752f47e5a4e56" className="min-h-[250px] w-full bg-gray-50 flex items-center justify-center">
-            <Script src="https://rightyrely.com/b594fd33ac3477b8549752f47e5a4e56/invoke.js" strategy="lazyOnload" />
-          </div>
-        </div>
-
         {/* ---------------------------------------------------------------- */}
-        {/* DYNAMIC SECTION: STEP 4 UI (Light Theme Image Style) VS STEP 1-3 */}
+        {/* DYNAMIC SECTION: STEP 4 UI (Top Priority) VS STEP 1-3 */}
         {/* ---------------------------------------------------------------- */}
         {currentStep === 4 ? (
           <div className="bg-white border border-gray-200 rounded-2xl p-6 shadow-md w-full">
             
-            {/* Step Progress Line */}
-            <div className="flex items-center justify-between mb-8 relative px-2">
-              <div className="absolute top-1/2 left-4 right-4 h-[2px] bg-gray-200 -z-10"></div>
-              <div className="absolute top-1/2 left-4 w-full h-[2px] bg-blue-500 -z-10"></div>
-              {[1, 2, 3, 4].map((s) => (
-                <div key={s} className={`w-8 h-8 rounded-full flex items-center justify-center font-bold text-sm z-10 ${s === 4 ? 'bg-[#0275d8] text-white ring-4 ring-blue-100' : 'bg-[#0275d8] text-white'}`}>
-                  {s < 4 ? '✓' : s}
-                </div>
-              ))}
-            </div>
-
-            {/* Circular Timer (Light Theme) */}
+            <div className="text-center font-bold mb-4 text-gray-700">STEP 4 OF 4</div>
+            
+            {/* Circular Timer */}
             <div className="relative w-32 h-32 mx-auto my-6 flex items-center justify-center">
               <svg className="absolute inset-0 w-full h-full transform -rotate-90">
                 <circle cx="64" cy="64" r="40" stroke="#f3f4f6" strokeWidth="8" fill="none" />
@@ -176,33 +172,34 @@ export default function StepPage() {
 
             {/* Action Buttons */}
             <div className="space-y-3">
-              {/* Button 1: Get Link */}
               <button 
                 disabled={timer > 0 || isFetching}
                 onClick={handleContinue}
-                className={`w-full flex items-center justify-between p-4 rounded-xl font-bold transition-all ${
+                className={`w-full flex items-center justify-center p-4 rounded-xl font-bold transition-all gap-2 ${
                   timer > 0 
                     ? 'bg-gray-100 border border-gray-300 text-gray-400 cursor-not-allowed'
                     : 'bg-[#0275d8] border border-[#0275d8] text-white hover:bg-blue-700 shadow-md'
                 }`}
               >
-                <div className="flex items-center gap-2">
-                  <span className="text-lg">🔗</span>
-                  <span>{timer > 0 ? "WAITING FOR TIMER..." : isFetching ? "VERIFYING..." : "GET YOUR DESTINATION LINK"}</span>
-                </div>
-                {timer === 0 && <span>❯</span>}
+                {timer > 0 ? (
+                  `WAIT ${timer}s`
+                ) : isFetching ? (
+                  <>
+                    <span className="w-5 h-5 border-2 border-white border-t-transparent rounded-full animate-spin"></span>
+                    VERIFYING...
+                  </>
+                ) : (
+                  <>
+                    <span className="text-lg">🔗</span> GET YOUR DESTINATION LINK
+                  </>
+                )}
               </button>
 
-              {/* Button 2: Landing Page Redirect */}
               <button 
                 onClick={() => window.location.href = "/"}
-                className="w-full flex items-center justify-between p-4 rounded-xl font-bold bg-white border-2 border-purple-500 text-purple-600 hover:bg-purple-50 transition-all shadow-sm"
+                className="w-full flex items-center justify-center gap-2 p-4 rounded-xl font-bold bg-white border-2 border-purple-500 text-purple-600 hover:bg-purple-50 transition-all shadow-sm"
               >
-                <div className="flex items-center gap-2">
-                  <span className="text-lg">✨</span>
-                  <span>CREATE THE SAME LINK FOR YOU</span>
-                </div>
-                <span>❯</span>
+                <span className="text-lg">✨</span> CREATE THE SAME LINK FOR YOU
               </button>
             </div>
 
@@ -232,9 +229,21 @@ export default function StepPage() {
         ) : (
           /* STEP 1 to 3 CLASSIC UI */
           <>
+            <div className="w-full bg-blue-100 border-l-4 border-blue-500 text-blue-700 p-4 rounded shadow-sm text-center">
+              <p className="font-bold text-lg">Step {currentStep} of 4</p>
+              <p className="text-sm font-medium">Please complete all steps to get your destination link.</p>
+            </div>
+            
+            {showContinue && (
+              <div className="w-full text-center mt-2 animate-bounce">
+                <p className="text-red-600 font-bold text-lg uppercase tracking-wide">Scroll Down & Click Continue 👇</p>
+              </div>
+            )}
+
             <div className="h-32 w-full flex items-center justify-center border-2 border-dashed border-gray-300 rounded-lg opacity-60">
               <p className="text-gray-500 text-sm font-bold tracking-widest uppercase">Keep Scrolling</p>
             </div>
+            
             <div className="w-full text-center md:w-1/2 mx-auto">
               <button 
                 disabled={timer > 0}
@@ -250,7 +259,15 @@ export default function StepPage() {
         )}
         {/* ---------------------------------------------------------------- */}
 
-        {/* BOTTOM AD */}
+        {/* TOP NATIVE AD (Now shifted below Step 4) */}
+        <div className="w-full bg-white p-2 rounded shadow-sm border border-gray-200 flex flex-col items-center">
+          <span className="text-[10px] text-gray-400 mb-1 font-bold">ADVERTISEMENT</span>
+          <div id="container-b594fd33ac3477b8549752f47e5a4e56" className="min-h-[250px] w-full bg-gray-50 flex items-center justify-center">
+            <Script src="https://rightyrely.com/b594fd33ac3477b8549752f47e5a4e56/invoke.js" strategy="lazyOnload" />
+          </div>
+        </div>
+
+        {/* BOTTOM BANNER AD */}
         <div className="w-full max-w-[320px] mx-auto bg-white p-2 rounded shadow-sm border border-gray-200 mt-4 flex flex-col items-center">
           <span className="text-[10px] text-gray-400 mb-1 font-bold">SPONSORED</span>
           <div className="w-[300px] h-[250px] bg-gray-50 flex items-center justify-center overflow-hidden">
@@ -264,5 +281,5 @@ export default function StepPage() {
       </main>
     </div>
   );
-          }
-          
+                  }
+              
